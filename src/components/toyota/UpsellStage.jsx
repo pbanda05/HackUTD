@@ -11,54 +11,8 @@ export default function UpsellStage({ journeyData, onComplete }) {
   useEffect(() => {
     const getRecommendations = async () => {
       try {
-        const response = await base44.integrations.Core.InvokeLLM({
-          prompt: `The customer has configured:
-- Model: ${journeyData.selectedModel.name} at $${journeyData.selectedModel.price}
-- Total Price with customizations: $${journeyData.customization.totalPrice}
-- Budget: $${journeyData.preferences.budget}
-- Credit Score: ${journeyData.preferences.creditScore}
-- Monthly Payment: $${journeyData.financing.monthlyPayment}
-
-Analyze if they should:
-1. UPSELL: If their budget allows ($${journeyData.preferences.budget} vs current $${journeyData.customization.totalPrice}), suggest a premium upgrade that makes sense. Calculate new monthly payment.
-2. DOWNSELL: If they're stretching their budget, suggest a more economical option that still fits their needs. Calculate savings.
-
-Provide specific upgrade/downgrade suggestions with pricing and compelling reasons.`,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              should_upsell: { type: "boolean" },
-              should_downsell: { type: "boolean" },
-              upsell_option: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  additional_cost: { type: "number" },
-                  new_monthly: { type: "number" },
-                  benefits: {
-                    type: "array",
-                    items: { type: "string" }
-                  }
-                }
-              },
-              downsell_option: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  savings: { type: "number" },
-                  new_monthly: { type: "number" },
-                  benefits: {
-                    type: "array",
-                    items: { type: "string" }
-                  }
-                }
-              }
-            }
-          }
-        });
-        
+        const { api } = await import('@/services/api');
+        const response = await api.getRecommendations(journeyData);
         setRecommendations(response);
       } catch (error) {
         console.error('Recommendations failed:', error);
@@ -143,8 +97,9 @@ Provide specific upgrade/downgrade suggestions with pricing and compelling reaso
           </div>
 
           <button
+            type="button"
             onClick={() => setSelectedOption('current')}
-            className={`w-full py-3 rounded-full font-semibold transition-all ${
+            className={`w-full py-3 rounded-full font-semibold transition-all cursor-pointer relative z-10 ${
               selectedOption === 'current'
                 ? 'bg-red-600 text-white'
                 : 'bg-white/10 text-white hover:bg-white/20'
@@ -193,8 +148,9 @@ Provide specific upgrade/downgrade suggestions with pricing and compelling reaso
             </div>
 
             <button
+              type="button"
               onClick={() => setSelectedOption('upsell')}
-              className={`w-full py-3 rounded-full font-semibold transition-all ${
+              className={`w-full py-3 rounded-full font-semibold transition-all cursor-pointer relative z-10 ${
                 selectedOption === 'upsell'
                   ? 'bg-green-600 text-white'
                   : 'bg-white/10 text-white hover:bg-white/20'
@@ -244,8 +200,9 @@ Provide specific upgrade/downgrade suggestions with pricing and compelling reaso
             </div>
 
             <button
+              type="button"
               onClick={() => setSelectedOption('downsell')}
-              className={`w-full py-3 rounded-full font-semibold transition-all ${
+              className={`w-full py-3 rounded-full font-semibold transition-all cursor-pointer relative z-10 ${
                 selectedOption === 'downsell'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white/10 text-white hover:bg-white/20'
@@ -263,8 +220,9 @@ Provide specific upgrade/downgrade suggestions with pricing and compelling reaso
         animate={{ opacity: 1, y: 0 }}
       >
         <button
+          type="button"
           onClick={handleContinue}
-          className="bg-red-600 hover:bg-red-700 text-white px-12 py-6 text-xl rounded-full shadow-2xl shadow-red-600/50 font-semibold inline-flex items-center hover:scale-105 transition-all"
+          className="bg-red-600 hover:bg-red-700 text-white px-12 py-6 text-xl rounded-full shadow-2xl shadow-red-600/50 font-semibold inline-flex items-center hover:scale-105 transition-all cursor-pointer relative z-10"
         >
           Continue to Reveal
           <ChevronRight className="w-6 h-6 ml-2" />

@@ -71,7 +71,12 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onComplete }) => {
   const [selected, setSelected] = useState<SelectedMap>({});
 
   const handleSelect = (sectionId: string, optionId: string) => {
-    setSelected(prev => ({ ...prev, [sectionId]: optionId }));
+    setSelected(prev => {
+      const newSelected = { ...prev };
+      newSelected[sectionId] = optionId;
+      console.log('Selection updated:', { sectionId, optionId, newSelected });
+      return newSelected;
+    });
   };
 
   const handleSubmit = () => {
@@ -91,28 +96,43 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto text-white">
+    <div className="max-w-4xl mx-auto text-white relative z-20">
       <h2 className="text-4xl font-extrabold mb-8">Tell us about you</h2>
 
-      <div className="space-y-8">
+      <div className="space-y-8 relative z-20">
         {SECTIONS.map(section => (
-          <div key={section.id}>
+          <div key={section.id} className="relative z-20">
             <h3 className="text-xl font-semibold mb-3">{section.title}</h3>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 relative z-20">
               {section.options.map(opt => {
-                const active = selected[section.id] === opt.id;
+                // Check if this specific option in this specific section is selected
+                const sectionSelection = selected[section.id];
+                const active = sectionSelection === opt.id;
+                const uniqueKey = `${section.id}-${opt.id}`;
+                
                 return (
                   <button
-                    key={opt.id}
+                    key={uniqueKey}
                     type="button"
-                    onClick={() => handleSelect(section.id, opt.id)}
-                    className={`px-4 py-2 rounded-full border transition ${
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Button clicked:', { 
+                        sectionId: section.id, 
+                        optionId: opt.id, 
+                        currentSelected: selected,
+                        sectionSelection: selected[section.id]
+                      });
+                      handleSelect(section.id, opt.id);
+                    }}
+                    className={`px-4 py-2 rounded-full border transition cursor-pointer relative z-30 pointer-events-auto ${
                       active
-                        ? 'bg-red-600 border-red-500'
-                        : 'bg-gray-900/60 border-gray-700 hover:bg-gray-800'
+                        ? 'bg-red-600 border-red-500 text-white'
+                        : 'bg-gray-900/60 border-gray-700 hover:bg-gray-800 text-gray-300'
                     }`}
                   >
                     {opt.label}
+                    {active && ' ✓'}
                   </button>
                 );
               })}
@@ -121,11 +141,15 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onComplete }) => {
         ))}
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 relative z-20">
         <button
           type="button"
-          onClick={handleSubmit}
-          className="bg-red-600 hover:bg-red-700 px-8 py-3 rounded-full font-semibold"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSubmit();
+          }}
+          className="bg-red-600 hover:bg-red-700 px-8 py-3 rounded-full font-semibold cursor-pointer relative z-30 pointer-events-auto"
         >
           Continue
         </button>

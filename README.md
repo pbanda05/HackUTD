@@ -1,16 +1,134 @@
-# React + Vite
+# Toyota Dream Trip - Full Stack Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack React frontend and Node.js/Express backend application for the Toyota Dream Trip experience.
 
-Currently, two official plugins are available:
+## Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+HackUTD/
+├── backend/          # Express.js backend API
+│   ├── server.js    # Main server file
+│   └── package.json # Backend dependencies
+├── src/             # React frontend
+│   ├── components/  # React components
+│   ├── pages/       # Page components
+│   ├── services/    # API service layer
+│   └── ...
+└── package.json     # Frontend dependencies
+```
 
-## React Compiler
+## Prerequisites
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js (v18 or higher)
+- npm or yarn
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Install Dependencies
+
+Install dependencies for both frontend and backend:
+
+```bash
+npm run install:all
+```
+
+Or install them separately:
+
+```bash
+# Frontend
+npm install
+
+# Backend
+cd backend && npm install
+```
+
+### 2. Environment Variables
+
+Create a `.env` file in the root directory (optional, defaults are provided):
+
+```env
+VITE_API_URL=http://localhost:3001/api
+```
+
+The backend uses port 3001 by default. You can change it by creating a `.env` file in the `backend/` directory:
+
+```env
+PORT=3001
+```
+
+### 3. Run the Application
+
+#### Option 1: Run Both Frontend and Backend Together
+
+```bash
+npm run dev:all
+```
+
+This requires `concurrently` package (already added to devDependencies).
+
+#### Option 2: Run Separately
+
+**Terminal 1 - Backend:**
+```bash
+npm run dev:backend
+# or
+cd backend && npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+npm run dev:frontend
+# or
+npm run dev
+```
+
+## Access the Application
+
+- **Frontend**: http://localhost:5173 (Vite default port)
+- **Backend API**: http://localhost:3001/api
+
+## API Endpoints
+
+### Health Check
+```
+GET /api/health
+```
+
+### Model Recommendation
+```
+POST /api/recommend-model
+Body: { "preferences": { ... } }
+```
+
+### Upsell/Downsell Recommendations
+```
+POST /api/recommendations
+Body: { "journeyData": { ... } }
+```
+
+## Development
+
+### Frontend
+- Built with React + Vite
+- Uses TypeScript for type safety
+- Framer Motion for animations
+- Three.js for 3D car visualization
+
+### Backend
+- Express.js REST API
+- CORS enabled for frontend communication
+- Ready for LLM integration (OpenAI, Anthropic, etc.)
+
+## Building for Production
+
+```bash
+# Build frontend
+npm run build:frontend
+
+# The built files will be in the `dist/` directory
+```
+
+## Notes
+
+- The backend currently uses simple heuristics for recommendations. You can integrate with LLM services (OpenAI, Anthropic, Base44, etc.) by updating the `backend/server.js` file.
+- The frontend automatically falls back to local heuristics if the API is unavailable.

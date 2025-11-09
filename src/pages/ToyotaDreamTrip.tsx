@@ -10,6 +10,7 @@ import FinancingStage from '@/components/toyota/FinancingStage';
 import UpsellStage from '@/components/toyota/UpsellStage';
 import RevealStage from '@/components/toyota/RevealStage';
 import DrivingAnimation from '@/components/toyota/DrivingAnimation';
+import { getModelById } from '@/data/models';
 
 /** ---- Types used in this page ---- */
 
@@ -28,7 +29,7 @@ type Preferences = Record<string, unknown>;
 
 type JourneyData = {
   preferences: Preferences;
-  selectedModel: string | null;
+  selectedModel: { id: string; name: string; price: number; [key: string]: unknown } | null;
   customization: Record<string, unknown>;
   financing: Record<string, unknown>;
   finalChoice: string; // 'current' or a specific choice string
@@ -143,7 +144,7 @@ export default function ToyotaDreamTrip() {
       <JourneyRoadmap stages={STAGES} currentStage={currentStage} onStageClick={goToStage} />
 
       {/* Main content */}
-      <div className="relative z-10 pt-32 pb-20 px-4">
+      <div className="relative z-20 pt-32 pb-20 px-4">
         <AnimatePresence mode="wait">
           {currentStage === 0 && (
             <motion.div
@@ -191,8 +192,9 @@ export default function ToyotaDreamTrip() {
                 transition={{ delay: 0.5 }}
               >
                 <button
+                  type="button"
                   onClick={nextStage}
-                  className="bg-red-600 hover:bg-red-700 text-white px-12 py-6 text-xl rounded-full shadow-2xl shadow-red-600/50 hover:shadow-red-600/70 transition-all duration-300 hover:scale-105 font-semibold inline-flex items-center"
+                  className="bg-red-600 hover:bg-red-700 text-white px-12 py-6 text-xl rounded-full shadow-2xl shadow-red-600/50 hover:shadow-red-600/70 transition-all duration-300 hover:scale-105 font-semibold inline-flex items-center cursor-pointer relative z-10"
                 >
                   Start Your Journey
                   <ChevronRight className="w-6 h-6 ml-2" />
@@ -207,20 +209,28 @@ export default function ToyotaDreamTrip() {
           )}
 
           {currentStage === 1 && (
-            <PreferencesStage
+            <motion.div
               key="preferences"
-              onComplete={(data: Preferences) => {
-                updateJourneyData('preferences', data);
-                nextStage();
-              }}
-            />
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="relative z-20"
+            >
+              <PreferencesStage
+                onComplete={(data: Preferences) => {
+                  updateJourneyData('preferences', data);
+                  nextStage();
+                }}
+              />
+            </motion.div>
           )}
 
           {currentStage === 2 && (
             <ComparisonStage
               key="comparison"
               preferences={journeyData.preferences}
-              onComplete={(model: string) => {
+              onComplete={(modelId: string) => {
+                const model = getModelById(modelId);
                 updateJourneyData('selectedModel', model);
                 nextStage();
               }}

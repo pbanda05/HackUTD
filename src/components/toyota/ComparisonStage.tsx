@@ -129,7 +129,19 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
             ? (raw as Model['name'])
             : 'Camry';
         } else {
-          name = fallbackRecommend(preferences);
+          // Use API if no recommendModel prop is provided
+          try {
+            const { api } = await import('@/services/api');
+            const raw = await api.recommendModel(preferences);
+            name = (['Camry', 'RAV4', 'Highlander', 'Tacoma'] as const).includes(
+              raw as Model['name']
+            )
+              ? (raw as Model['name'])
+              : fallbackRecommend(preferences);
+          } catch (apiError) {
+            console.error('API recommendation failed, using fallback:', apiError);
+            name = fallbackRecommend(preferences);
+          }
         }
         if (isMounted) setAiRecommendation(name);
       } catch (err) {
@@ -230,8 +242,9 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
 
           {selectedModel && (
             <motion.button
+              type="button"
               onClick={handleContinue}
-              className="mt-12 bg-red-600 hover:bg-red-700 px-10 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-red-600/50 transition-all inline-flex items-center"
+              className="mt-12 bg-red-600 hover:bg-red-700 px-10 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-red-600/50 transition-all inline-flex items-center cursor-pointer relative z-10"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
