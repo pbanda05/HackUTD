@@ -144,53 +144,15 @@ export default function CustomizationStage({ selectedModel, onBack, onComplete }
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          {/* Car Visualization - Sketchfab 3D Model */}
+          {/* Car Visualization */}
           <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-700">
-            <div className="h-96 bg-gradient-to-br from-gray-800 to-black rounded-xl mb-4 overflow-hidden relative">
-              <iframe
-                title={sketchfabModel.title}
-                frameBorder="0"
-                allowFullScreen
-                mozAllowFullScreen="true"
-                webkitAllowFullScreen="true"
-                allow="autoplay; fullscreen; xr-spatial-tracking"
-                xr-spatial-tracking
-                execution-while-out-of-viewport
-                execution-while-not-rendered
-                web-share
-                src={sketchfabModel.embedUrl}
-                className="w-full h-full rounded-xl"
-                style={{ border: 'none' }}
+            <div className="h-64 bg-gradient-to-br from-gray-800 to-black rounded-xl mb-4 overflow-hidden">
+              <Car3DViewer 
+                modelId={selectedModel?.id || 'camry'} 
+                isActive={true} 
+                color={selectedColor} 
               />
             </div>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              <a 
-                href={sketchfabModel.modelUrl} 
-                target="_blank" 
-                rel="nofollow noopener noreferrer"
-                className="hover:text-red-500 transition-colors"
-              >
-                {sketchfabModel.title}
-              </a>
-              {' by '}
-              <a 
-                href={sketchfabModel.authorUrl} 
-                target="_blank" 
-                rel="nofollow noopener noreferrer"
-                className="hover:text-red-500 transition-colors"
-              >
-                {sketchfabModel.author}
-              </a>
-              {' on '}
-              <a 
-                href="https://sketchfab.com/?utm_medium=embed&utm_campaign=share-popup&utm_content=147a0afe465144b5a474dc2f8c0a42cc" 
-                target="_blank" 
-                rel="nofollow noopener noreferrer"
-                className="hover:text-red-500 transition-colors"
-              >
-                Sketchfab
-              </a>
-            </p>
           </div>
 
           {/* Price Summary */}
