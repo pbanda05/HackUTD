@@ -1,19 +1,67 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { MapPin, Settings, BarChart3, DollarSign, Home } from 'lucide-react';
+
+const ICON_MAP = {
+  'welcome': MapPin,
+  'preferences': Settings,
+  'budget': BarChart3,
+  'comparison': BarChart3,
+  'customization': Settings,
+  'financing': DollarSign,
+  'upsell': Settings,
+  'reveal': Home
+};
 
 export default function JourneyRoadmap({ stages, currentStage, onStageClick }) {
+  // Calculate car position based on current stage
+  const carPosition = (currentStage / (stages.length - 1)) * 100;
+  
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-2xl border-b border-red-600/20">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900/90 backdrop-blur-xl border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between relative">
-          {/* Glowing road line */}
-          <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-600/30 to-transparent" />
+          {/* Connecting line */}
+          <div className="absolute top-1/2 left-0 right-0 h-0.5">
+            <div 
+              className="h-full bg-red-600 transition-all duration-500"
+              style={{ width: `${(currentStage / (stages.length - 1)) * 100}%` }}
+            />
+            <div className="absolute inset-0 h-full bg-gray-700" style={{ zIndex: -1 }} />
+          </div>
+          
+          {/* Moving Car on Top Bar */}
+          <motion.div
+            className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 z-20"
+            style={{ left: `${carPosition}%` }}
+            transition={{
+              duration: 0.5,
+              ease: "easeOut"
+            }}
+          >
+            {/* Car Shadow */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-8 h-1.5 bg-black/40 blur-md rounded-full" />
+            
+            {/* Car Body - Top View */}
+            <div className="relative w-10 h-6 bg-gradient-to-b from-red-600 via-red-700 to-red-800 rounded-lg shadow-xl border-2 border-red-500">
+              {/* Car Windows */}
+              <div className="absolute top-1 left-2 right-2 h-2 bg-black/40 rounded-sm" />
+              
+              {/* Car Wheels - Top View */}
+              <div className="absolute -bottom-1 left-1 w-3 h-3 bg-gray-900 rounded-full border border-gray-700" />
+              <div className="absolute -bottom-1 right-1 w-3 h-3 bg-gray-900 rounded-full border border-gray-700" />
+              
+              {/* Car Headlights - Front */}
+              <div className="absolute top-1 left-0 w-1.5 h-1.5 bg-yellow-300 rounded-full" />
+              <div className="absolute top-1 right-0 w-1.5 h-1.5 bg-yellow-300 rounded-full" />
+            </div>
+          </motion.div>
           
           {stages.map((stage, index) => {
             const isActive = index === currentStage;
             const isCompleted = index < currentStage;
             const isAccessible = index <= currentStage;
+            const Icon = ICON_MAP[stage.id] || Settings;
             
             return (
               <motion.div
@@ -24,55 +72,31 @@ export default function JourneyRoadmap({ stages, currentStage, onStageClick }) {
                 transition={{ delay: index * 0.1 }}
               >
                 <motion.button
+                  type="button"
                   onClick={() => isAccessible && onStageClick(index)}
                   disabled={!isAccessible}
-                  className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl transition-all duration-300 ${
+                  className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
                     isActive 
-                      ? 'bg-red-600 shadow-2xl shadow-red-600/60 scale-110' 
+                      ? 'bg-red-600 shadow-lg shadow-red-600/50' 
                       : isCompleted
-                      ? 'bg-red-700/80 shadow-lg shadow-red-700/40 hover:scale-105 cursor-pointer'
-                      : 'bg-gray-800/50 opacity-50 backdrop-blur-sm'
+                      ? 'bg-red-600/80 hover:bg-red-600'
+                      : 'bg-gray-700 opacity-50'
                   }`}
                   whileHover={isAccessible ? { scale: 1.1 } : {}}
                   whileTap={isAccessible ? { scale: 0.95 } : {}}
                 >
-                  {isCompleted ? (
-                    <Check className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                  ) : (
-                    <span className="text-xl md:text-2xl">{stage.icon}</span>
-                  )}
+                  <Icon className={`w-8 h-8 md:w-10 md:h-10 ${
+                    isActive || isCompleted ? 'text-white' : 'text-gray-400'
+                  }`} />
                 </motion.button>
                 
                 <motion.p 
-                  className={`mt-2 text-xs md:text-sm font-medium text-center transition-colors ${
-                    isActive ? 'text-red-400' : isCompleted ? 'text-red-300' : 'text-gray-500'
+                  className={`mt-2 text-xs font-medium text-center transition-colors ${
+                    isActive ? 'text-white' : isCompleted ? 'text-gray-300' : 'text-gray-500'
                   }`}
-                  animate={{ 
-                    opacity: isActive ? 1 : 0.7,
-                    y: isActive ? [0, -2, 0] : 0
-                  }}
-                  transition={{
-                    y: { repeat: Infinity, duration: 2 }
-                  }}
                 >
                   {stage.title}
                 </motion.p>
-
-                {/* Pulsing ring for active stage */}
-                {isActive && (
-                  <motion.div
-                    className="absolute top-0 w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-red-400"
-                    animate={{
-                      scale: [1, 1.4, 1],
-                      opacity: [1, 0, 1]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  />
-                )}
               </motion.div>
             );
           })}

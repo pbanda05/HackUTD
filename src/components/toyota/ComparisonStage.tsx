@@ -1,7 +1,8 @@
 // src/components/toyota/ComparisonStage.tsx
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Zap, Users, Fuel, Star, Loader2 } from 'lucide-react';
+import { ChevronRight, Zap, Users, Fuel, Star, Loader2, Sparkles } from 'lucide-react';
+import Car3DViewer from './Car3DViewer';
 
 // NOTE: If you want to use your Base44 client, pass a `recommendModel` prop:
 // recommendModel: (prefs) => Promise<string>
@@ -114,6 +115,8 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
   const [selectedModel, setSelectedModel] = useState<Model['id'] | null>(null);
   const [hoveredModel, setHoveredModel] = useState<Model['id'] | null>(null);
   const [aiRecommendation, setAiRecommendation] = useState<Model['name'] | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<string>('');
+  const [matchScores, setMatchScores] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -121,6 +124,9 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
     (async () => {
       try {
         let name: Model['name'];
+        let analysis = '';
+        let scores: Record<string, number> = {};
+        
         if (recommendModel) {
           const raw = await recommendModel(preferences);
           name = (['Camry', 'RAV4', 'Highlander', 'Tacoma'] as const).includes(
@@ -132,21 +138,31 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
           // Use API if no recommendModel prop is provided
           try {
             const { api } = await import('@/services/api');
-            const raw = await api.recommendModel(preferences);
+            const result = await api.recommendModel(preferences);
             name = (['Camry', 'RAV4', 'Highlander', 'Tacoma'] as const).includes(
-              raw as Model['name']
+              result.model as Model['name']
             )
-              ? (raw as Model['name'])
+              ? (result.model as Model['name'])
               : fallbackRecommend(preferences);
+            analysis = result.analysis || '';
+            scores = result.matchScores || {};
           } catch (apiError) {
             console.error('API recommendation failed, using fallback:', apiError);
             name = fallbackRecommend(preferences);
           }
         }
-        if (isMounted) setAiRecommendation(name);
+        if (isMounted) {
+          setAiRecommendation(name);
+          setAiAnalysis(analysis);
+          setMatchScores(scores);
+        }
       } catch (err) {
         console.error('Recommendation failed, using fallback:', err);
-        if (isMounted) setAiRecommendation('Camry');
+        if (isMounted) {
+          setAiRecommendation('Camry');
+          setAiAnalysis('');
+          setMatchScores({});
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -164,16 +180,24 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
     if (selectedModel) onComplete(selectedModel);
   };
 
+  const recommendedModelId = aiRecommendation ? sanitizeToModelId(aiRecommendation) : null;
+  const getMatchScore = (modelId: string) => matchScores[modelId] || 3;
+
   return (
-    <div className="text-white text-center py-20 px-6">
-      <motion.h2
+    <div className="text-white py-20 px-6 max-w-7xl mx-auto relative min-h-[calc(100vh-200px)] flex flex-col justify-center items-center w-full">
+      <motion.div
+        className="text-center mb-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-5xl font-extrabold mb-8"
       >
-        AI Matching Results
-      </motion.h2>
+        <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">
+          Choose Your <span className="text-red-600">Champion</span>
+        </h2>
+        <p className="text-xl text-gray-300">
+          Each model is engineered for excellence
+        </p>
+      </motion.div>
 
       {loading ? (
         <div className="flex justify-center items-center h-48">
@@ -181,26 +205,48 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
         </div>
       ) : (
         <>
-          <p className="text-lg text-gray-300 mb-12">
-            Our AI recommends:{' '}
-            <span className="text-red-500 font-semibold">
-              {aiRecommendation ?? 'Camry'}
-            </span>
-          </p>
+          {/* AI Analysis Card */}
+          {aiAnalysis && aiRecommendation && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-12 bg-gradient-to-br from-purple-900/50 to-purple-800/30 backdrop-blur-lg rounded-3xl p-8 border border-purple-500/30"
+            >
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-600/20 p-3 rounded-2xl">
+                  <Sparkles className="w-8 h-8 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    AI Recommends: {aiRecommendation}
+                  </h3>
+                  <p className="text-gray-300 leading-relaxed text-lg">
+                    {aiAnalysis}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Car Comparison Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {MODELS.map((model) => {
               const isSelected = selectedModel === model.id;
               const isHovered = hoveredModel === model.id;
+              const isRecommended = recommendedModelId === model.id;
+              const matchScore = getMatchScore(model.id);
 
               return (
                 <motion.div
                   key={model.id}
-                  className={`p-6 rounded-2xl border ${
+                  className={`relative rounded-2xl border overflow-hidden transition-all ${
                     isSelected
-                      ? 'border-red-500 bg-red-600/20'
-                      : 'border-gray-700 bg-gray-900/50'
-                  } cursor-pointer transition-transform ${
+                      ? 'border-red-500 bg-gradient-to-b from-gray-900 to-red-600/20 ring-4 ring-red-500/30'
+                      : isRecommended
+                      ? 'border-red-500 bg-gradient-to-b from-gray-900 to-gray-900/70'
+                      : 'border-gray-700 bg-gradient-to-b from-gray-900 to-gray-900/50'
+                  } cursor-pointer ${
                     isHovered ? 'scale-105' : 'hover:scale-105'
                   }`}
                   onClick={() => handleSelectModel(model.id)}
@@ -209,31 +255,86 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <h3 className="text-2xl font-bold mb-2">{model.name}</h3>
-                  <p className="text-gray-400 mb-4">{model.tagline}</p>
-                  <p className="text-xl font-semibold mb-4">
-                    ${model.price.toLocaleString()}
-                  </p>
+                  {/* AI Recommended Badge */}
+                  {isRecommended && (
+                    <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 z-10">
+                      <Sparkles className="w-3 h-3" />
+                      AI Recommended
+                    </div>
+                  )}
 
-                  <ul className="text-sm text-gray-400 space-y-1 mb-4">
-                    {model.highlights.map((h) => (
-                      <li key={h}>• {h}</li>
-                    ))}
-                  </ul>
+                  {/* Match Score Badge */}
+                  <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${
+                    matchScore >= 4 ? 'bg-green-600/80 text-white' :
+                    matchScore >= 3 ? 'bg-yellow-600/80 text-white' :
+                    'bg-gray-600/80 text-white'
+                  }`}>
+                    {matchScore}/5 Match
+                  </div>
 
-                  <div className="flex justify-center space-x-4 text-sm text-gray-400">
-                    <span className="flex items-center">
-                      <Zap className="w-4 h-4 mr-1" /> {model.specs.horsepower} HP
-                    </span>
-                    <span className="flex items-center">
-                      <Fuel className="w-4 h-4 mr-1" /> {model.specs.mpg} MPG
-                    </span>
-                    <span className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" /> {model.specs.seating}
-                    </span>
-                    <span className="flex items-center">
-                      <Star className="w-4 h-4 mr-1 text-yellow-400" /> {model.specs.rating}
-                    </span>
+                  {/* Car Image Section */}
+                  <div className="h-48 bg-gradient-to-br from-gray-800 to-black relative overflow-hidden">
+                    <Car3DViewer 
+                      key={`${model.id}-${isSelected}`}
+                      modelId={model.id} 
+                      isActive={isSelected || isRecommended}
+                      color={{ hex: '#C1272D' }}
+                    />
+                  </div>
+
+                  {/* Content Section */}
+                  <div className={`p-6 ${isSelected ? 'bg-red-600' : isRecommended ? 'bg-gray-900' : 'bg-gray-900/90'}`}>
+                    <h3 className="text-2xl font-bold text-white mb-1">{model.name}</h3>
+                    <p className="text-gray-300 mb-4 text-sm">{model.tagline}</p>
+                    
+                    <div className="mb-4">
+                      <p className="text-3xl font-black text-white mb-1">
+                        ${model.price.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-300">Starting MSRP</p>
+                    </div>
+
+                    {/* Specs */}
+                    <div className="flex justify-between mb-4 text-sm">
+                      <div className="flex flex-col items-center">
+                        <Fuel className="w-5 h-5 text-white mb-1" />
+                        <span className="text-white font-semibold">{model.specs.mpg} MPG</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <Zap className="w-5 h-5 text-white mb-1" />
+                        <span className="text-white font-semibold">{model.specs.horsepower} HP</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <Star className="w-5 h-5 text-yellow-400 mb-1" />
+                        <span className="text-white font-semibold">5★ Safety</span>
+                      </div>
+                    </div>
+
+                    {/* Features */}
+                    <div className="mb-4 space-y-1">
+                      {model.highlights.slice(0, 2).map((h) => (
+                        <div key={h} className="flex items-center gap-2 text-sm text-white">
+                          <span className="text-red-500">✓</span>
+                          <span>{h}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Select Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectModel(model.id);
+                      }}
+                      className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                        isSelected
+                          ? 'bg-white text-red-600'
+                          : 'bg-red-600 text-white hover:bg-red-700'
+                      } cursor-pointer relative z-10 inline-flex items-center justify-center`}
+                    >
+                      Select {model.name} →
+                    </button>
                   </div>
                 </motion.div>
               );
@@ -241,15 +342,19 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
           </div>
 
           {selectedModel && (
-            <motion.button
-              type="button"
-              onClick={handleContinue}
-              className="mt-12 bg-red-600 hover:bg-red-700 px-10 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-red-600/50 transition-all inline-flex items-center cursor-pointer relative z-10"
+            <motion.div
+              className="text-center"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              Continue <ChevronRight className="w-5 h-5 ml-2" />
-            </motion.button>
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="bg-red-600 hover:bg-red-700 px-10 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-red-600/50 transition-all inline-flex items-center cursor-pointer relative z-10"
+              >
+                Continue <ChevronRight className="w-5 h-5 ml-2" />
+              </button>
+            </motion.div>
           )}
         </>
       )}

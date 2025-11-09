@@ -4,12 +4,14 @@ import { ChevronRight, Sparkles } from 'lucide-react';
 
 import JourneyRoadmap from '@/components/toyota/JourneyRoadmap';
 import PreferencesStage from '@/components/toyota/PreferencesStage';
+import BudgetStage from '@/components/toyota/BudgetStage';
 import ComparisonStage from '@/components/toyota/ComparisonStage';
 import CustomizationStage from '@/components/toyota/CustomizationStage';
 import FinancingStage from '@/components/toyota/FinancingStage';
 import UpsellStage from '@/components/toyota/UpsellStage';
 import RevealStage from '@/components/toyota/RevealStage';
 import DrivingAnimation from '@/components/toyota/DrivingAnimation';
+import RoadWithCar from '@/components/toyota/RoadWithCar';
 import { getModelById } from '@/data/models';
 
 /** ---- Types used in this page ---- */
@@ -17,6 +19,7 @@ import { getModelById } from '@/data/models';
 type StageId =
   | 'welcome'
   | 'preferences'
+  | 'budget'
   | 'comparison'
   | 'customization'
   | 'financing'
@@ -85,6 +88,7 @@ const _assertRevealStage: RevealStageProps | null = null;
 const STAGES: StageItem[] = [
   { id: 'welcome',      title: 'Start Your Journey', icon: '🏁' },
   { id: 'preferences',  title: 'Your Profile',       icon: '❤️' },
+  { id: 'budget',       title: 'Budget',             icon: '💰' },
   { id: 'comparison',   title: 'AI Matching',        icon: '🤖' },
   { id: 'customization',title: 'Customize',          icon: '🎨' },
   { id: 'financing',    title: 'Financing',          icon: '💰' },
@@ -131,7 +135,7 @@ export default function ToyotaDreamTrip() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black relative overflow-hidden">
+    <div className="w-full min-h-screen bg-gradient-to-b from-black via-gray-900 to-black relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -143,47 +147,49 @@ export default function ToyotaDreamTrip() {
       {/* Journey progress roadmap */}
       <JourneyRoadmap stages={STAGES} currentStage={currentStage} onStageClick={goToStage} />
 
+      {/* Road with Moving Car - Global (only one, centered) */}
+      <RoadWithCar currentStage={currentStage} totalStages={STAGES.length} />
+
       {/* Main content */}
-      <div className="relative z-20 pt-32 pb-20 px-4">
+      <div className="relative z-20 pt-32 pb-20 px-4 min-h-[calc(100vh-200px)] flex items-center justify-center">
         <AnimatePresence mode="wait">
           {currentStage === 0 && (
             <motion.div
               key="welcome"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              className="max-w-5xl mx-auto text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-5xl mx-auto text-center relative w-full"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                className="inline-block mb-6"
-              >
-                <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center shadow-2xl shadow-red-600/50">
-                  <Sparkles className="w-12 h-12 text-white" />
-                </div>
-              </motion.div>
 
               <motion.h1
-                className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tight"
+                className="text-8xl md:text-9xl font-black text-red-600 mb-4 tracking-tight"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                style={{ textShadow: '0 0 40px rgba(220, 38, 38, 0.5)' }}
+              >
+                TOYOTA
+              </motion.h1>
+
+              <motion.h2
+                className="text-4xl md:text-5xl font-bold text-white mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                Your <span className="text-red-600">Dream</span>
-                <br />
-                Toyota Journey
-              </motion.h1>
+                Dream Trip
+              </motion.h2>
 
               <motion.p
-                className="text-xl md:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed"
+                className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                Experience the ultimate car-buying adventure. From preferences to your driveway,
-                we'll guide you every mile of the way.
+                Your journey from dealership to driveway starts here.
+                <br />
+                Every mile brings you closer to your perfect Toyota.
               </motion.p>
 
               <motion.div
@@ -194,17 +200,11 @@ export default function ToyotaDreamTrip() {
                 <button
                   type="button"
                   onClick={nextStage}
-                  className="bg-red-600 hover:bg-red-700 text-white px-12 py-6 text-xl rounded-full shadow-2xl shadow-red-600/50 hover:shadow-red-600/70 transition-all duration-300 hover:scale-105 font-semibold inline-flex items-center cursor-pointer relative z-10"
+                  className="bg-red-600 hover:bg-red-700 text-white px-16 py-4 text-lg font-bold rounded-lg shadow-2xl shadow-red-600/50 hover:shadow-red-600/70 transition-all duration-300 hover:scale-105 uppercase tracking-wider cursor-pointer relative z-10"
                 >
-                  Start Your Journey
-                  <ChevronRight className="w-6 h-6 ml-2" />
+                  START YOUR JOURNEY
                 </button>
               </motion.div>
-
-              {/* Decorative road lines */}
-              <div className="absolute bottom-0 left-0 right-0 h-32 opacity-20">
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-t from-red-600 to-transparent" />
-              </div>
             </motion.div>
           )}
 
@@ -226,6 +226,27 @@ export default function ToyotaDreamTrip() {
           )}
 
           {currentStage === 2 && (
+            <motion.div
+              key="budget"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="relative z-20"
+            >
+              <BudgetStage
+                onComplete={(data: { budget: number; creditScore: number }) => {
+                  updateJourneyData('preferences', {
+                    ...journeyData.preferences,
+                    budget: data.budget,
+                    creditScore: data.creditScore,
+                  });
+                  nextStage();
+                }}
+              />
+            </motion.div>
+          )}
+
+          {currentStage === 3 && (
             <ComparisonStage
               key="comparison"
               preferences={journeyData.preferences}
@@ -237,7 +258,7 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 3 && (
+          {currentStage === 4 && (
             <CustomizationStage
               key="customization"
               selectedModel={journeyData.selectedModel}
@@ -248,7 +269,7 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 4 && (
+          {currentStage === 5 && (
             <FinancingStage
               key="financing"
               selectedModel={journeyData.selectedModel}
@@ -260,7 +281,7 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 5 && (
+          {currentStage === 6 && (
             <UpsellStage
               key="upsell"
               journeyData={journeyData}
@@ -272,7 +293,7 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 6 && <RevealStage key="reveal" journeyData={journeyData} />}
+          {currentStage === 7 && <RevealStage key="reveal" journeyData={journeyData} />}
         </AnimatePresence>
       </div>
     </div>

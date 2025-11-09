@@ -1,66 +1,53 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Palette, Package, Settings } from 'lucide-react';
+import { Car } from 'lucide-react';
 import Car3DViewer from './Car3DViewer';
+import { Slider } from '@/components/ui/slider';
 
 const COLORS = [
-  { id: 'red', name: 'Supersonic Red', hex: '#C1272D', glow: 'shadow-red-500/50' },
-  { id: 'black', name: 'Midnight Black', hex: '#0A0A0A', glow: 'shadow-gray-500/50' },
-  { id: 'white', name: 'Blizzard Pearl', hex: '#F0F0F0', glow: 'shadow-gray-300/50' },
-  { id: 'silver', name: 'Celestial Silver', hex: '#C0C0C0', glow: 'shadow-gray-400/50' },
-  { id: 'blue', name: 'Blueprint', hex: '#1E3A8A', glow: 'shadow-blue-500/50' }
+  { id: 'red', name: 'Supersonic Red', hex: '#C1272D' },
+  { id: 'white', name: 'Wind Chill Pearl', hex: '#F0F0F0' },
+  { id: 'black', name: 'Midnight Black', hex: '#0A0A0A' },
+  { id: 'silver', name: 'Celestial Silver', hex: '#C0C0C0' },
+  { id: 'blue', name: 'Blueprint', hex: '#1E3A8A' },
+  { id: 'gray', name: 'Magnetic Gray', hex: '#808080' }
 ];
 
 const PACKAGES = [
   {
-    id: 'base',
-    name: 'Base Package',
-    price: 0,
-    features: ['Standard Features', 'Cloth Seats', 'Basic Audio']
-  },
-  {
     id: 'premium',
     name: 'Premium Package',
-    price: 3500,
-    features: ['Leather Seats', 'Sunroof', 'Premium Audio', 'Advanced Safety']
+    price: 2850,
+    features: ['Leather Seats', 'Heated Steering', 'Premium Sound']
   },
   {
-    id: 'luxury',
-    name: 'Luxury Package',
-    price: 6500,
-    features: ['Premium Leather', 'Panoramic Roof', 'Premium Sound', 'All Safety Features', 'Heated & Cooled Seats']
+    id: 'tech',
+    name: 'Tech Package',
+    price: 1900,
+    features: ['360° Camera', 'Parking Assist', 'Wireless Charging']
+  },
+  {
+    id: 'sport',
+    name: 'Sport Package',
+    price: 2200,
+    features: ['Sport Wheels', 'Spoiler', 'Performance Exhaust']
   }
-];
-
-const EXTRAS = [
-  { id: 'tint', name: 'Window Tint', price: 400 },
-  { id: 'mats', name: 'All-Weather Mats', price: 200 },
-  { id: 'cargo', name: 'Cargo Organizer', price: 150 },
-  { id: 'roof', name: 'Roof Rack', price: 800 }
 ];
 
 export default function CustomizationStage({ selectedModel, onComplete }) {
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
-  const [selectedPackage, setSelectedPackage] = useState(PACKAGES[0]);
-  const [selectedExtras, setSelectedExtras] = useState([]);
+  const [wheelSize, setWheelSize] = useState(18);
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
-  const toggleExtra = (extra) => {
-    setSelectedExtras(prev =>
-      prev.find(e => e.id === extra.id)
-        ? prev.filter(e => e.id !== extra.id)
-        : [...prev, extra]
-    );
-  };
-
-  const totalPrice = selectedModel.price + selectedPackage.price + 
-    selectedExtras.reduce((sum, e) => sum + e.price, 0);
+  const basePrice = selectedModel?.price || 0;
+  const packagePrice = selectedPackage?.price || 0;
+  const totalPrice = basePrice + packagePrice;
 
   const handleContinue = () => {
     onComplete({
       color: selectedColor,
+      wheelSize,
       package: selectedPackage,
-      extras: selectedExtras,
       totalPrice
     });
   };
@@ -70,7 +57,7 @@ export default function CustomizationStage({ selectedModel, onComplete }) {
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -50 }}
-      className="max-w-7xl mx-auto"
+      className="max-w-7xl mx-auto relative min-h-[calc(100vh-200px)] flex flex-col justify-center items-center w-full"
     >
       <motion.div
         className="text-center mb-12"
@@ -78,159 +65,144 @@ export default function CustomizationStage({ selectedModel, onComplete }) {
         animate={{ opacity: 1, y: 0 }}
       >
         <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">
-          Make It <span className="text-red-600">Yours</span>
+          Customize Every <span className="text-red-600">Detail</span>
         </h2>
         <p className="text-xl text-gray-300">
-          Customize your {selectedModel.name} to perfection
+          Make your {selectedModel?.name || 'car'} uniquely yours
         </p>
       </motion.div>
 
-      <div className="grid lg:grid-cols-2 gap-12 mb-12">
-        {/* Left: Preview */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Left Panel - Car Preview & Price Summary */}
         <motion.div
           className="space-y-6"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <div className="bg-white/5 backdrop-blur-lg rounded-[2rem] p-8 relative overflow-hidden border border-white/10">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-transparent" />
-            <div className="relative z-10">
-              <h3 className="text-2xl font-bold text-white mb-4">Your {selectedModel.name}</h3>
-              <div className="h-80 bg-gradient-to-br from-gray-900/50 to-black/50 rounded-3xl mb-4 overflow-hidden">
-                <Car3DViewer modelId={selectedModel.id} isActive={true} color={selectedColor} />
+          {/* Car Visualization */}
+          <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-700">
+            <div className="h-64 bg-gradient-to-br from-gray-800 to-black rounded-xl mb-4 overflow-hidden">
+              <Car3DViewer 
+                modelId={selectedModel?.id || 'camry'} 
+                isActive={true} 
+                color={selectedColor} 
+              />
+            </div>
+          </div>
+
+          {/* Price Summary */}
+          <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-700">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-gray-300">Base Price</span>
+              <span className="text-white font-semibold">${basePrice.toLocaleString()}</span>
+            </div>
+            {selectedPackage && (
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-gray-300">{selectedPackage.name}</span>
+                <span className="text-red-500 font-semibold">+${selectedPackage.price.toLocaleString()}</span>
               </div>
-              <div className="flex items-center justify-between p-6 bg-white/5 backdrop-blur-sm rounded-2xl">
-                <div>
-                  <p className="text-gray-400 text-sm">Total Price</p>
-                  <motion.p
-                    className="text-4xl font-black text-white"
-                    key={totalPrice}
-                    initial={{ scale: 1.2, color: '#EF4444' }}
-                    animate={{ scale: 1, color: '#FFFFFF' }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    ${totalPrice.toLocaleString()}
-                  </motion.p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-400">{selectedColor.name}</p>
-                  <p className="text-sm text-red-400">{selectedPackage.name}</p>
-                </div>
-              </div>
+            )}
+            <div className="flex justify-between items-center pt-4 border-t border-gray-700">
+              <span className="text-white text-lg font-bold">Total</span>
+              <span className="text-white text-2xl font-black">${totalPrice.toLocaleString()}</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Right: Options */}
+        {/* Right Panel - Customization Options */}
         <motion.div
           className="space-y-8"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          {/* Colors */}
+          {/* Exterior Color */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <Palette className="w-6 h-6 text-red-400" />
-              <h3 className="text-2xl font-bold text-white">Exterior Color</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <Car className="w-5 h-5 text-red-500" />
+              <h3 className="text-xl font-bold text-white">Exterior Color</h3>
             </div>
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {COLORS.map((color) => {
                 const isSelected = selectedColor.id === color.id;
                 return (
-                  <motion.button
+                  <button
                     key={color.id}
+                    type="button"
                     onClick={() => setSelectedColor(color)}
-                    className={`relative aspect-square rounded-3xl transition-all duration-300 ${
-                      isSelected ? `ring-4 ring-red-500 ring-offset-4 ring-offset-black shadow-2xl ${color.glow}` : ''
+                    className={`relative p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-red-500 ring-4 ring-red-500/30'
+                        : 'border-gray-700 hover:border-gray-600'
                     }`}
-                    style={{ backgroundColor: color.hex }}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    whileTap={{ scale: 0.95 }}
                   >
-                    {isSelected && (
-                      <motion.div
-                        className="absolute inset-0 flex items-center justify-center"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 200 }}
-                      >
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                          <span className="text-black text-lg">✓</span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.button>
+                    <div
+                      className="w-full h-20 rounded-lg mb-2"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <p className={`text-sm font-semibold ${
+                      isSelected ? 'text-white' : 'text-gray-400'
+                    }`}>
+                      {color.name}
+                    </p>
+                  </button>
                 );
               })}
             </div>
-            <p className="text-sm text-gray-400 mt-2">{selectedColor.name}</p>
           </div>
 
-          {/* Packages */}
+          {/* Wheel Size */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <Package className="w-6 h-6 text-red-400" />
-              <h3 className="text-2xl font-bold text-white">Package</h3>
+            <h3 className="text-xl font-bold text-white mb-4">
+              Wheel Size: {wheelSize}"
+            </h3>
+            <div className="relative">
+              <Slider
+                value={wheelSize}
+                onChange={(val) => setWheelSize(val)}
+                min={17}
+                max={21}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between mt-2 text-sm text-gray-400">
+                <span>17"</span>
+                <span>18"</span>
+                <span>21"</span>
+              </div>
             </div>
+          </div>
+
+          {/* Upgrade Packages */}
+          <div>
+            <h3 className="text-xl font-bold text-white mb-4">Upgrade Packages</h3>
             <div className="space-y-3">
               {PACKAGES.map((pkg) => {
-                const isSelected = selectedPackage.id === pkg.id;
+                const isSelected = selectedPackage?.id === pkg.id;
                 return (
-                  <motion.button
+                  <button
                     key={pkg.id}
-                    onClick={() => setSelectedPackage(pkg)}
-                    className={`w-full text-left p-6 rounded-3xl transition-all duration-300 backdrop-blur-lg ${
+                    type="button"
+                    onClick={() => setSelectedPackage(isSelected ? null : pkg)}
+                    className={`w-full p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
                       isSelected
-                        ? 'bg-red-600 ring-4 ring-red-500 ring-offset-2 ring-offset-black shadow-lg shadow-red-500/30'
-                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                        ? 'border-red-500 bg-red-600/20'
+                        : 'border-gray-700 bg-gray-900/50 hover:bg-gray-900/70'
                     }`}
-                    whileHover={{ scale: 1.02, x: 5 }}
-                    whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-lg font-bold text-white">{pkg.name}</h4>
-                      <p className="text-lg font-bold text-white">
-                        {pkg.price === 0 ? 'Included' : `+$${pkg.price.toLocaleString()}`}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      {pkg.features.map((feature, idx) => (
-                        <p key={idx} className="text-sm text-gray-300 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 bg-white rounded-full" />
-                          {feature}
+                      <div>
+                        <h4 className="text-lg font-bold text-white mb-1">{pkg.name}</h4>
+                        <p className="text-sm text-gray-400">
+                          {pkg.features.join(' • ')}
                         </p>
-                      ))}
+                      </div>
+                      <span className={`text-lg font-bold ${
+                        isSelected ? 'text-red-500' : 'text-gray-400'
+                      }`}>
+                        +${pkg.price.toLocaleString()}
+                      </span>
                     </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Extras */}
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <Settings className="w-6 h-6 text-red-400" />
-              <h3 className="text-2xl font-bold text-white">Add-Ons</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {EXTRAS.map((extra) => {
-                const isSelected = selectedExtras.find(e => e.id === extra.id);
-                return (
-                  <motion.button
-                    key={extra.id}
-                    onClick={() => toggleExtra(extra)}
-                    className={`p-4 rounded-2xl transition-all duration-300 backdrop-blur-lg ${
-                      isSelected
-                        ? 'bg-red-600 ring-2 ring-red-500 shadow-lg shadow-red-500/30'
-                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <p className="text-white font-semibold text-sm mb-1">{extra.name}</p>
-                    <p className="text-white font-bold">+${extra.price}</p>
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
@@ -240,16 +212,16 @@ export default function CustomizationStage({ selectedModel, onComplete }) {
 
       {/* Continue Button */}
       <motion.div
-        className="text-center"
+        className="text-center mt-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
         <button
+          type="button"
           onClick={handleContinue}
-          className="bg-red-600 hover:bg-red-700 text-white px-12 py-6 text-xl rounded-full shadow-2xl shadow-red-600/50 hover:scale-105 transition-all font-semibold inline-flex items-center"
+          className="bg-red-600 hover:bg-red-700 text-white px-12 py-4 text-lg font-bold rounded-lg shadow-2xl shadow-red-600/50 hover:shadow-red-600/70 transition-all duration-300 hover:scale-105 uppercase tracking-wider cursor-pointer relative z-10 inline-flex items-center"
         >
-          Continue to Financing
-          <ChevronRight className="w-6 h-6 ml-2" />
+          Continue to Financing →
         </button>
       </motion.div>
     </motion.div>

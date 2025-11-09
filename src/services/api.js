@@ -15,7 +15,11 @@ export const api = {
     }
 
     const data = await response.json();
-    return data.model;
+    return {
+      model: data.model,
+      analysis: data.analysis,
+      matchScores: data.matchScores
+    };
   },
 
   async getRecommendations(journeyData) {

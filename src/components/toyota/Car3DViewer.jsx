@@ -11,14 +11,21 @@ export default function Car3DViewer({ modelId, isActive, color }) {
   useEffect(() => {
     if (!mountRef.current) return;
 
+    // Clear any existing content
+    while (mountRef.current.firstChild) {
+      mountRef.current.removeChild(mountRef.current.firstChild);
+    }
+
     // Scene setup
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
     // Camera
+    const width = mountRef.current.clientWidth || 200;
+    const height = mountRef.current.clientHeight || 150;
     const camera = new THREE.PerspectiveCamera(
       45,
-      mountRef.current.clientWidth / mountRef.current.clientHeight,
+      width / height,
       0.1,
       1000
     );
@@ -30,7 +37,7 @@ export default function Car3DViewer({ modelId, isActive, color }) {
       antialias: true, 
       alpha: true 
     });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -58,13 +65,21 @@ export default function Car3DViewer({ modelId, isActive, color }) {
     const createCar = () => {
       const group = new THREE.Group();
       
-      const carColor = color?.hex || '#CC0000';
+      // Handle color prop - can be string or object with hex
+      let carColor = '#C1272D'; // Default red
+      if (typeof color === 'string') {
+        carColor = color;
+      } else if (color?.hex) {
+        carColor = color.hex;
+      }
+      
       const bodyMaterial = new THREE.MeshPhysicalMaterial({ 
         color: carColor,
-        metalness: 0.7,
-        roughness: 0.3,
+        metalness: 0.8,
+        roughness: 0.2,
         clearcoat: 1,
-        clearcoatRoughness: 0.1
+        clearcoatRoughness: 0.05,
+        envMapIntensity: 1.5
       });
 
       const glassMaterial = new THREE.MeshPhysicalMaterial({ 
@@ -82,7 +97,7 @@ export default function Car3DViewer({ modelId, isActive, color }) {
         roughness: 0.4
       });
 
-      // Different geometries based on model
+      // Different geometries based on model - using rounded shapes for smoother look
       let bodyScale = { x: 2.2, y: 0.7, z: 1.1 };
       let cabinScale = { x: 1.3, y: 0.6, z: 1 };
       let cabinOffset = 0;
@@ -99,34 +114,39 @@ export default function Car3DViewer({ modelId, isActive, color }) {
         cabinOffset = -0.3;
       }
 
-      // Body
-      const bodyGeometry = new THREE.BoxGeometry(bodyScale.x, bodyScale.y, bodyScale.z);
+      // Body - using rounded box for smoother appearance
+      const bodyGeometry = new THREE.BoxGeometry(bodyScale.x, bodyScale.y, bodyScale.z, 2, 2, 2);
       const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
       body.position.y = 0.4;
       body.castShadow = true;
+      // Smooth the edges
+      body.geometry.computeVertexNormals();
       group.add(body);
 
-      // Cabin
-      const cabinGeometry = new THREE.BoxGeometry(cabinScale.x, cabinScale.y, cabinScale.z);
+      // Cabin - rounded
+      const cabinGeometry = new THREE.BoxGeometry(cabinScale.x, cabinScale.y, cabinScale.z, 2, 2, 2);
       const cabin = new THREE.Mesh(cabinGeometry, glassMaterial);
       cabin.position.set(cabinOffset, 1, 0);
       cabin.castShadow = true;
+      cabin.geometry.computeVertexNormals();
       group.add(cabin);
 
-      // Hood (front slope)
-      const hoodGeometry = new THREE.BoxGeometry(0.6, 0.3, 1.1);
+      // Hood (front slope) - more rounded
+      const hoodGeometry = new THREE.BoxGeometry(0.6, 0.3, bodyScale.z, 2, 2, 2);
       const hood = new THREE.Mesh(hoodGeometry, bodyMaterial);
       hood.position.set(bodyScale.x / 2 + 0.2, 0.6, 0);
       hood.rotation.z = -0.3;
       hood.castShadow = true;
+      hood.geometry.computeVertexNormals();
       group.add(hood);
 
-      // Trunk (back slope)
-      const trunkGeometry = new THREE.BoxGeometry(0.5, 0.3, 1.1);
+      // Trunk (back slope) - more rounded
+      const trunkGeometry = new THREE.BoxGeometry(0.5, 0.3, bodyScale.z, 2, 2, 2);
       const trunk = new THREE.Mesh(trunkGeometry, bodyMaterial);
       trunk.position.set(-bodyScale.x / 2 - 0.15, 0.6, 0);
       trunk.rotation.z = 0.2;
       trunk.castShadow = true;
+      trunk.geometry.computeVertexNormals();
       group.add(trunk);
 
       // Wheels
@@ -235,21 +255,32 @@ export default function Car3DViewer({ modelId, isActive, color }) {
       window.removeEventListener('resize', handleResize);
       if (animationIdRef.current) {
         cancelAnimationFrame(animationIdRef.current);
+        animationIdRef.current = null;
       }
-      if (mountRef.current && renderer.domElement) {
+      if (mountRef.current && renderer.domElement && mountRef.current.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
-      renderer.dispose();
-      scene.traverse((object) => {
-        if (object.geometry) object.geometry.dispose();
-        if (object.material) {
-          if (Array.isArray(object.material)) {
-            object.material.forEach(material => material.dispose());
-          } else {
-            object.material.dispose();
+      if (renderer) {
+        renderer.dispose();
+      }
+      if (scene) {
+        scene.traverse((object) => {
+          if (object.geometry) {
+            object.geometry.dispose();
           }
-        }
-      });
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach(material => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        });
+      }
+      // Clear refs
+      sceneRef.current = null;
+      rendererRef.current = null;
+      carGroupRef.current = null;
     };
   }, [modelId, isActive, color]);
 
