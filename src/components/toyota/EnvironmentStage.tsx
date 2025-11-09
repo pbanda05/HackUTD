@@ -13,36 +13,36 @@ const ENVIRONMENT_OPTIONS = [
     label: 'Urban',
     description: 'City streets, tight parking, daily commute',
     icon: Building2,
-    color: 'blue',
-    bgColor: 'from-blue-600 to-blue-700',
-    borderColor: 'border-blue-500'
+    color: 'red',
+    bgColor: 'from-gray-900 via-red-900/30 to-black',
+    borderColor: 'border-red-500'
   },
   {
     id: 'suburban',
     label: 'Suburban',
     description: 'Mixed driving, highways, neighborhoods',
     icon: Route,
-    color: 'green',
-    bgColor: 'from-green-600 to-green-700',
-    borderColor: 'border-green-500'
+    color: 'red',
+    bgColor: 'from-black via-red-600/20 to-gray-900',
+    borderColor: 'border-red-500'
   },
   {
     id: 'rural',
     label: 'Rural',
     description: 'Open roads, off-road, wide spaces',
     icon: TreePine,
-    color: 'orange',
-    bgColor: 'from-orange-600 to-orange-700',
-    borderColor: 'border-orange-500'
+    color: 'red',
+    bgColor: 'from-gray-800 via-red-800/40 to-black',
+    borderColor: 'border-red-500'
   },
   {
     id: 'mixed',
     label: 'Mixed',
     description: 'A bit of everything, versatile needs',
     icon: MapPin,
-    color: 'purple',
-    bgColor: 'from-purple-600 to-purple-700',
-    borderColor: 'border-purple-500'
+    color: 'red',
+    bgColor: 'from-black via-red-700/30 to-gray-800',
+    borderColor: 'border-red-500'
   }
 ];
 
@@ -108,23 +108,23 @@ const EnvironmentStage: React.FC<EnvironmentStageProps> = ({ onBack, onComplete 
               onClick={() => handleSelect(option.id)}
               className={`relative p-8 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden ${
                 isSelected
-                  ? `${option.borderColor} bg-gradient-to-br ${option.bgColor} shadow-2xl scale-105`
-                  : 'border-gray-700 bg-gray-900/50 hover:bg-gray-900/70'
+                  ? `${option.borderColor} bg-gradient-to-br ${option.bgColor} shadow-2xl scale-105 ring-4 ring-opacity-50`
+                  : `${option.borderColor} bg-gradient-to-br ${option.bgColor} opacity-60 hover:opacity-80 border-opacity-50`
               }`}
               initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: isSelected ? 1 : 0.6 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, opacity: isSelected ? 1 : 0.9 }}
               whileTap={{ scale: 0.98 }}
             >
               <div className="flex flex-col items-center text-center">
                 <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${
-                  isSelected ? 'bg-white/20' : 'bg-white/10'
+                  isSelected ? 'bg-white/30 shadow-lg' : 'bg-white/20'
                 }`}>
-                  <Icon className={`w-10 h-10 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                  <Icon className={`w-10 h-10 ${isSelected ? 'text-white' : 'text-white'}`} />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">{option.label}</h3>
-                <p className="text-gray-300 text-sm">{option.description}</p>
+                <p className={`text-sm ${isSelected ? 'text-white' : 'text-white/90'}`}>{option.description}</p>
               </div>
             </motion.button>
           );

@@ -68,11 +68,46 @@ const MODELS: Model[] = MODEL_DATA.map(model => {
   };
 
   // Helper function to get image path
-  const getImagePath = (id: string): string => {
-    // Default image path - you can update this based on your actual image structure
-    return `/pics/${id}.webp`; // or .png, .jpg based on your actual files
+  const getImagePath = (id: string, vehicleType?: string): string => {
+    // Map model IDs to actual image file names (only files that exist)
+    const imageMap: Record<string, string> = {
+      'rav4': '/pics/rav4.webp',
+      'highlander': '/pics/highlander.webp',
+      'tacoma': '/pics/tacoma.webp',
+      'supra': '/pics/supra.webp',
+      'tundra_trd_pro_iforce_max': '/pics/tundra.webp',
+      'sequoia': '/pics/sequoia.png',
+      'gr_corolla': '/pics/grcorolla.webp',
+      'tacoma_trd_pro_iforce_max': '/pics/tacoma.webp',
+      'tundra': '/pics/tundra.webp',
+      'gr86': '/pics/gr86.webp',
+      'grandHighlander': '/pics/grandhighlander.webp',
+      'prius': '/pics/prius.webp',
+    };
+    
+    // If image exists, return it
+    if (imageMap[id]) {
+      return imageMap[id];
+    }
+    
+    // For models without images, use vehicle-type-appropriate fallback
+    if (vehicleType === 'sedan' || vehicleType === 'sedan/crossover') {
+      return '/pics/prius.webp'; // Use Prius for sedans
+    } else if (vehicleType === 'SUV') {
+      return '/pics/rav4.webp'; // Use RAV4 for SUVs
+    } else if (vehicleType === 'truck') {
+      return '/pics/tacoma.webp'; // Use Tacoma for trucks
+    } else if (vehicleType === 'coupe') {
+      return '/pics/supra.webp'; // Use Supra for coupes
+    } else if (vehicleType === 'hatchback') {
+      return '/pics/prius.webp'; // Use Prius for hatchbacks
+    }
+    
+    return '/pics/rav4.webp'; // Default fallback
   };
 
+  const vehicleType = ((model as any).vehicle_type as Model['vehicle_type']) || getVehicleType(model.id, model.name);
+  
   return {
     id: model.id,
     name: model.name,
@@ -80,9 +115,9 @@ const MODELS: Model[] = MODEL_DATA.map(model => {
     price: model.price,
     specs: model.specs,
     highlights: model.highlights,
-    image: (model as any).image || getImagePath(model.id),
+    image: (model as any).image || getImagePath(model.id, vehicleType),
     fuel_type: (model as any).fuel_type || getFuelType(model.id, model.name),
-    vehicle_type: ((model as any).vehicle_type as Model['vehicle_type']) || getVehicleType(model.id, model.name),
+    vehicle_type: vehicleType,
   };
 });
 
@@ -327,7 +362,7 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onBack, 
                 className={`mb-12 w-full bg-linear-to-br from-gray-900 to-gray-800 rounded-3xl border-2 overflow-hidden shadow-2xl transition-all cursor-pointer ${
                   isSelected
                     ? 'border-green-500 shadow-green-500/30 ring-4 ring-green-500/20'
-                    : 'border-red-500 shadow-red-500/20'
+                    : 'border-gray-600 shadow-gray-500/20'
                 }`}
               >
                 <div className="flex flex-row h-96">
@@ -488,7 +523,7 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onBack, 
             </motion.div>
           ) : null}
 
-          {/* Other Car Comparison Cards */}
+          {/* Other Car Comparison Cards - Show only top 3 best matches */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {MODELS
               .filter(model => !recommendedModelId || model.id !== recommendedModelId)
@@ -497,6 +532,7 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onBack, 
                 const scoreB = getMatchScore(b.id);
                 return scoreB - scoreA; // Sort by highest match score
               })
+              .slice(0, 3) // Only show top 3 best matches
               .map((model) => {
               const isSelected = selectedModel === model.id;
               const isHovered = hoveredModel === model.id;
