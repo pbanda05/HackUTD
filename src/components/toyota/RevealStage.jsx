@@ -137,7 +137,7 @@ export default function RevealStage({ journeyData }) {
             onClick={() => {
               generateToyotaInvoice(journeyData);
             }}
-            className="bg-white hover:bg-gray-100 text-gray-900 px-8 py-4 text-lg font-bold rounded-lg shadow-2xl shadow-white/20 hover:shadow-white/30 transition-all duration-300 hover:scale-105 uppercase tracking-wider cursor-pointer relative z-10 inline-flex items-center gap-2"
+            className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 px-8 py-4 text-lg font-bold rounded-lg shadow-2xl shadow-white/20 hover:shadow-white/30 transition-all duration-300 hover:scale-105 uppercase tracking-wider cursor-pointer relative z-10 inline-flex items-center gap-2"
           >
             <Download className="w-5 h-5" />
             Download Summary

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Sparkles } from 'lucide-react';
 
-import JourneyRoadmap from '@/components/toyota/JourneyRoadmap';
 import PreferencesStage from '@/components/toyota/PreferencesStage';
 import BudgetStage from '@/components/toyota/BudgetStage';
 import ComparisonStage from '@/components/toyota/ComparisonStage';
@@ -11,7 +10,6 @@ import FinancingStage from '@/components/toyota/FinancingStage';
 import UpsellStage from '@/components/toyota/UpsellStage';
 import RevealStage from '@/components/toyota/RevealStage';
 import DrivingAnimation from '@/components/toyota/DrivingAnimation';
-import RoadWithCar from '@/components/toyota/RoadWithCar';
 import { getModelById } from '@/data/models';
 
 /** ---- Types used in this page ---- */
@@ -142,16 +140,19 @@ export default function ToyotaDreamTrip() {
       </div>
 
       {/* Driving animation overlay */}
-      <AnimatePresence>{showDriving && <DrivingAnimation />}</AnimatePresence>
+      <AnimatePresence>
+        {showDriving && (
+          <DrivingAnimation 
+            currentStage={currentStage}
+            nextStage={currentStage + 1}
+            stages={STAGES}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Journey progress roadmap */}
-      <JourneyRoadmap stages={STAGES} currentStage={currentStage} onStageClick={goToStage} />
-
-      {/* Road with Moving Car - Global (only one, centered) */}
-      <RoadWithCar currentStage={currentStage} totalStages={STAGES.length} />
 
       {/* Main content */}
-      <div className="relative z-20 pt-32 pb-20 px-4 min-h-[calc(100vh-200px)] flex items-center justify-center">
+      <div className="relative z-20 pt-20 pb-20 px-4 min-h-screen flex items-center justify-center">
         <AnimatePresence mode="wait">
           {currentStage === 0 && (
             <motion.div

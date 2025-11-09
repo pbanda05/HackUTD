@@ -3,17 +3,19 @@
       "target": "ES2020",
       "module": "ESNext",
   
-      "jsx": "react-jsx",               // <-- important for JSX
-      "allowJs": true,                  // allow your .jsx files
+      "jsx": "react-jsx",
+      "allowJs": true,
       "strict": true,
+      "noEmit": true,
   
-      "baseUrl": ".",                   // for path alias
-      "paths": { "@/*": ["src/*"] },    // for '@/...'
+      "baseUrl": ".",
+      "paths": { "@/*": ["src/*"] },
   
       "moduleResolution": "Bundler",
       "types": ["vite/client", "react", "react-dom"],
       "skipLibCheck": true
     },
-    "include": ["src", "src/types/**/*.d.ts"]
+    "include": ["src", "src/types/**/*.d.ts"],
+    "exclude": ["node_modules", "dist"]
 }
   

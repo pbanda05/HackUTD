@@ -3,10 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, Zap, Users, Fuel, Star, Loader2, Sparkles } from 'lucide-react';
 import Car3DViewer from './Car3DViewer';
-
-// NOTE: If you want to use your Base44 client, pass a `recommendModel` prop:
-// recommendModel: (prefs) => Promise<string>
-
+import Car360Viewer from './Car360Viewer';
 type Preferences = {
   lifestyle?: string;
   usage?: string;
@@ -88,14 +85,13 @@ const sanitizeToModelId = (value: string | null | undefined): Model['id'] | null
   if (!value) return null;
   const trimmed = value.trim();
   if (trimmed in NAME_TO_ID) return NAME_TO_ID[trimmed as Model['name']];
-  // also try case-insensitive match
   const found = Object.entries(NAME_TO_ID).find(
     ([k]) => k.toLowerCase() === trimmed.toLowerCase()
   );
   return found ? found[1] : null;
 };
 
-// very simple fallback heuristic if no recommendModel is provided
+// simple fallback when API/prop isn’t available
 const fallbackRecommend = (prefs: Preferences): Model['name'] => {
   const usage = String(prefs.usage ?? '').toLowerCase();
   const lifestyle = String(prefs.lifestyle ?? '').toLowerCase();
@@ -135,7 +131,6 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
             ? (raw as Model['name'])
             : 'Camry';
         } else {
-          // Use API if no recommendModel prop is provided
           try {
             const { api } = await import('@/services/api');
             const result = await api.recommendModel(preferences);
@@ -181,7 +176,16 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
   };
 
   const recommendedModelId = aiRecommendation ? sanitizeToModelId(aiRecommendation) : null;
-  const getMatchScore = (modelId: string) => matchScores[modelId] || 3;
+  const recommendedModel = recommendedModelId ? MODELS.find(m => m.id === recommendedModelId) : null;
+  
+  const getMatchScore = (modelId: string) => {
+    if (!modelId || !matchScores) return 3;
+    return matchScores[modelId] || 3;
+  };
+  
+  const corollaCrossXle = (f: number) =>
+    'https://tmna.aemassets.toyota.com/is/image/toyota/toyota/jellies/max/2026/corollacross/xle/6305/089/36/10.png?fmt=webp-alpha&wid=930&hei=328&qlt=90'
+  
 
   return (
     <div className="text-white py-20 px-6 max-w-7xl mx-auto relative min-h-[calc(100vh-200px)] flex flex-col justify-center items-center w-full">
@@ -192,7 +196,7 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
         transition={{ delay: 0.1 }}
       >
         <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">
-          Choose Your <span className="text-red-600">Champion</span>
+          Choose Your <span className="text-red-600">Car</span>
         </h2>
         <p className="text-xl text-gray-300">
           Each model is engineered for excellence
@@ -205,36 +209,189 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
         </div>
       ) : (
         <>
-          {/* AI Analysis Card */}
-          {aiAnalysis && aiRecommendation && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-12 bg-gradient-to-br from-purple-900/50 to-purple-800/30 backdrop-blur-lg rounded-3xl p-8 border border-purple-500/30"
-            >
-              <div className="flex items-start gap-4">
-                <div className="bg-purple-600/20 p-3 rounded-2xl">
-                  <Sparkles className="w-8 h-8 text-purple-400" />
+          {/* AI Recommended Car - Large Rectangle */}
+          {recommendedModel && (() => {
+            const matchScore = getMatchScore(recommendedModelId!);
+            if (!matchScore || matchScore < 1) return null;
+            
+            const isSelected = selectedModel === recommendedModel.id;
+            
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                /* NEW: make the whole card selectable */
+                onClick={() => handleSelectModel(recommendedModel.id)}
+                className={`mb-12 w-full bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl border-2 overflow-hidden shadow-2xl transition-all cursor-pointer ${
+                  isSelected
+                    ? 'border-green-500 shadow-green-500/30 ring-4 ring-green-500/20'
+                    : 'border-red-500 shadow-red-500/20'
+                }`}
+              >
+                <div className="flex flex-row h-96">
+                  {/* Left 1/4 - 3D Car Model */}
+                  <div className="w-1/4 bg-gradient-to-br from-gray-800 to-black relative overflow-hidden">
+                    {/* AI Recommended Badge */}
+                    <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 z-10 shadow-lg">
+                      <Sparkles className="w-4 h-4" />
+                      AI Recommended
+                    </div>
+                    {/* Match Score Badge */}
+                    <div className={`absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10 ${
+                      matchScore >= 4 ? 'bg-green-600/90 text-white' :
+                      matchScore >= 3 ? 'bg-yellow-600/90 text-white' :
+                      'bg-gray-600/90 text-white'
+                    }`}>
+                      {matchScore}/5 Match
+                    </div>
+                    {/* Car Image - Centered with top padding to avoid badges */}
+                    <div className="absolute inset-0 flex items-center justify-center pt-16 pb-4 px-4 pointer-events-none">
+                      {/* pointer-events-none ensures the canvas never blocks clicks */}
+                      <div className="w-full h-full flex items-center justify-center">
+                        <img 
+                          src="https://tmna.aemassets.toyota.com/is/image/toyota/toyota/jellies/max/2026/corollacross/xle/6305/089/36/10.png?fmt=webp-alpha&wid=930&hei=328&qlt=90" 
+                          alt="Corolla Cross XLE" 
+                          className="max-w-full max-h-full w-auto h-auto rounded-2xl shadow-lg object-contain"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Right 3/4 - Information */}
+                  <div className="w-3/4 p-8 flex flex-col justify-between">
+                    {/* Top Section */}
+                    <div>
+                      <h3 className="text-4xl font-black text-white mb-2">{recommendedModel.name}</h3>
+                      <p className="text-xl text-gray-300 mb-4">{recommendedModel.tagline}</p>
+                      
+                      {/* Price */}
+                      <div className="mb-6">
+                        <p className="text-5xl font-black text-red-500 mb-1">
+                          ${recommendedModel.price.toLocaleString()}
+                        </p>
+                        <p className="text-sm text-gray-400">Starting MSRP</p>
+                      </div>
+                      
+                      {/* AI Analysis */}
+                      {aiAnalysis && (
+                        <div className="mb-6 bg-purple-900/30 backdrop-blur-sm rounded-xl p-4 border border-purple-500/30">
+                          <div className="flex items-start gap-3 mb-2">
+                            <Sparkles className="w-5 h-5 text-purple-400 mt-1" />
+                            <h4 className="text-lg font-bold text-white">Why This Car?</h4>
+                          </div>
+                          <p className="text-gray-300 leading-relaxed text-sm">
+                            {aiAnalysis}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Bottom Section - Specs and Features */}
+                    <div className="flex gap-8">
+                      {/* Specs */}
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">Specifications</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center gap-3">
+                            <Fuel className="w-5 h-5 text-red-500" />
+                            <div>
+                              <p className="text-xs text-gray-400">MPG</p>
+                              <p className="text-lg font-bold text-white">{recommendedModel.specs.mpg}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Zap className="w-5 h-5 text-red-500" />
+                            <div>
+                              <p className="text-xs text-gray-400">Horsepower</p>
+                              <p className="text-lg font-bold text-white">{recommendedModel.specs.horsepower} HP</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Users className="w-5 h-5 text-red-500" />
+                            <div>
+                              <p className="text-xs text-gray-400">Seating</p>
+                              <p className="text-lg font-bold text-white">{recommendedModel.specs.seating}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Star className="w-5 h-5 text-yellow-400" />
+                            <div>
+                              <p className="text-xs text-gray-400">Safety</p>
+                              <p className="text-lg font-bold text-white">{recommendedModel.specs.rating}★</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Features */}
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">Key Features</h4>
+                        <div className="space-y-2">
+                          {recommendedModel.highlights.map((h) => (
+                            <div key={h} className="flex items-center gap-2 text-white">
+                              <span className="text-red-500 font-bold">✓</span>
+                              <span className="text-sm">{h}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Select Button */}
+                    <div className="mt-6">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Choose and immediately continue
+                          handleSelectModel(recommendedModel.id);
+                          onComplete(recommendedModel.id);
+                        }}
+                        className={`w-full py-4 rounded-lg font-bold text-lg transition-all cursor-pointer relative z-10 inline-flex items-center justify-center shadow-lg ${
+                          isSelected
+                            ? 'bg-green-600 text-white hover:bg-green-700 shadow-green-600/50'
+                            : 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/50'
+                        }`}
+                      >
+                        {isSelected ? '✓ Selected' : `Select ${recommendedModel.name} →`}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    AI Recommends: {aiRecommendation}
-                  </h3>
-                  <p className="text-gray-300 leading-relaxed text-lg">
-                    {aiAnalysis}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            );
+          })()}
 
-          {/* Car Comparison Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {MODELS.map((model) => {
+          {/* Continue Button - shows for manual flow / non-AI cards */}
+          {selectedModel ? (
+            <motion.div
+              key="continue-button"
+              className="text-center mb-8 sticky top-4 z-50"
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleContinue();
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-16 py-6 rounded-full text-xl font-bold shadow-2xl shadow-red-600/50 hover:shadow-red-600/70 transition-all duration-300 hover:scale-105 inline-flex items-center cursor-pointer relative z-50"
+              >
+                Continue <ChevronRight className="w-6 h-6 ml-2" />
+              </button>
+            </motion.div>
+          ) : null}
+
+          {/* Other Car Comparison Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {MODELS.filter(model => !recommendedModelId || model.id !== recommendedModelId).map((model) => {
               const isSelected = selectedModel === model.id;
               const isHovered = hoveredModel === model.id;
-              const isRecommended = recommendedModelId === model.id;
               const matchScore = getMatchScore(model.id);
 
               return (
@@ -243,8 +400,6 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                   className={`relative rounded-2xl border overflow-hidden transition-all ${
                     isSelected
                       ? 'border-red-500 bg-gradient-to-b from-gray-900 to-red-600/20 ring-4 ring-red-500/30'
-                      : isRecommended
-                      ? 'border-red-500 bg-gradient-to-b from-gray-900 to-gray-900/70'
                       : 'border-gray-700 bg-gradient-to-b from-gray-900 to-gray-900/50'
                   } cursor-pointer ${
                     isHovered ? 'scale-105' : 'hover:scale-105'
@@ -255,14 +410,6 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  {/* AI Recommended Badge */}
-                  {isRecommended && (
-                    <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 z-10">
-                      <Sparkles className="w-3 h-3" />
-                      AI Recommended
-                    </div>
-                  )}
-
                   {/* Match Score Badge */}
                   <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${
                     matchScore >= 4 ? 'bg-green-600/80 text-white' :
@@ -277,13 +424,13 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                     <Car3DViewer 
                       key={`${model.id}-${isSelected}`}
                       modelId={model.id} 
-                      isActive={isSelected || isRecommended}
+                      isActive={isSelected}
                       color={{ hex: '#C1272D' }}
                     />
                   </div>
 
                   {/* Content Section */}
-                  <div className={`p-6 ${isSelected ? 'bg-red-600' : isRecommended ? 'bg-gray-900' : 'bg-gray-900/90'}`}>
+                  <div className={`p-6 ${isSelected ? 'bg-red-600' : 'bg-gray-900/90'}`}>
                     <h3 className="text-2xl font-bold text-white mb-1">{model.name}</h3>
                     <p className="text-gray-300 mb-4 text-sm">{model.tagline}</p>
                     
@@ -341,21 +488,6 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
             })}
           </div>
 
-          {selectedModel && (
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <button
-                type="button"
-                onClick={handleContinue}
-                className="bg-red-600 hover:bg-red-700 px-10 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-red-600/50 transition-all inline-flex items-center cursor-pointer relative z-10"
-              >
-                Continue <ChevronRight className="w-5 h-5 ml-2" />
-              </button>
-            </motion.div>
-          )}
         </>
       )}
     </div>
