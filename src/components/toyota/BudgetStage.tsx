@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Slider } from '@/components/ui/slider';
-import { Zap } from 'lucide-react';
+import { Zap, ChevronLeft } from 'lucide-react';
 
 type BudgetStageProps = {
+  onBack?: () => void;
   onComplete: (data: { budget: number; creditScore: number }) => void;
 };
 
@@ -14,7 +15,7 @@ const getCreditScoreLabel = (score: number): string => {
   return 'Poor';
 };
 
-const BudgetStage: React.FC<BudgetStageProps> = ({ onComplete }) => {
+const BudgetStage: React.FC<BudgetStageProps> = ({ onBack, onComplete }) => {
   const [budget, setBudget] = useState(46000);
   const [creditScore, setCreditScore] = useState(700);
 
@@ -29,6 +30,22 @@ const BudgetStage: React.FC<BudgetStageProps> = ({ onComplete }) => {
       exit={{ opacity: 0, y: -50 }}
       className="max-w-4xl mx-auto text-white relative z-20 min-h-[calc(100vh-200px)] flex flex-col justify-center items-center w-full"
     >
+      {/* Back Button */}
+      {onBack && (
+        <motion.button
+          type="button"
+          onClick={onBack}
+          className="fixed top-4 left-4 flex items-center gap-2 text-gray-300 hover:text-white transition-colors cursor-pointer z-30 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-700 hover:border-gray-600"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+          <span className="text-sm font-medium">Back</span>
+        </motion.button>
+      )}
+      
       <motion.div
         className="text-center mb-12"
         initial={{ opacity: 0, y: 20 }}
@@ -65,7 +82,7 @@ const BudgetStage: React.FC<BudgetStageProps> = ({ onComplete }) => {
           </div>
           <Slider
             value={budget}
-            onChange={(val) => setBudget(val)}
+            onChange={(val: number) => setBudget(val)}
             min={20000}
             max={80000}
             step={1000}
@@ -109,7 +126,7 @@ const BudgetStage: React.FC<BudgetStageProps> = ({ onComplete }) => {
           </div>
           <Slider
             value={creditScore}
-            onChange={(val) => setCreditScore(val)}
+            onChange={(val: number) => setCreditScore(val)}
             min={500}
             max={850}
             step={10}

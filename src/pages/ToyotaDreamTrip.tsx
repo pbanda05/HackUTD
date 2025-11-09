@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Sparkles } from 'lucide-react';
 
 import PreferencesStage from '@/components/toyota/PreferencesStage';
+import EnvironmentStage from '@/components/toyota/EnvironmentStage';
 import BudgetStage from '@/components/toyota/BudgetStage';
+import VehicleTypeStage from '@/components/toyota/VehicleTypeStage';
+import FeaturesStage from '@/components/toyota/FeaturesStage';
 import ComparisonStage from '@/components/toyota/ComparisonStage';
 import CustomizationStage from '@/components/toyota/CustomizationStage';
 import FinancingStage from '@/components/toyota/FinancingStage';
@@ -17,7 +20,10 @@ import { getModelById } from '@/data/models';
 type StageId =
   | 'welcome'
   | 'preferences'
+  | 'environment'
   | 'budget'
+  | 'vehicleType'
+  | 'features'
   | 'comparison'
   | 'customization'
   | 'financing'
@@ -86,7 +92,10 @@ const _assertRevealStage: RevealStageProps | null = null;
 const STAGES: StageItem[] = [
   { id: 'welcome',      title: 'Start Your Journey', icon: '🏁' },
   { id: 'preferences',  title: 'Your Profile',       icon: '❤️' },
+  { id: 'environment',  title: 'Environment',        icon: '🌍' },
   { id: 'budget',       title: 'Budget',             icon: '💰' },
+  { id: 'vehicleType',  title: 'Vehicle Type',       icon: '🚗' },
+  { id: 'features',     title: 'Features',           icon: '⭐' },
   { id: 'comparison',   title: 'AI Matching',        icon: '🤖' },
   { id: 'customization',title: 'Customize',          icon: '🎨' },
   { id: 'financing',    title: 'Financing',          icon: '💰' },
@@ -122,6 +131,13 @@ export default function ToyotaDreamTrip() {
         setShowDriving(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 2000);
+    }
+  };
+
+  const prevStage = () => {
+    if (currentStage > 0) {
+      setCurrentStage(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -218,6 +234,7 @@ export default function ToyotaDreamTrip() {
               className="relative z-20"
             >
               <PreferencesStage
+                onBack={prevStage}
                 onComplete={(data: Preferences) => {
                   updateJourneyData('preferences', data);
                   nextStage();
@@ -228,6 +245,27 @@ export default function ToyotaDreamTrip() {
 
           {currentStage === 2 && (
             <motion.div
+              key="environment"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="relative z-20"
+            >
+              <EnvironmentStage
+                onBack={prevStage}
+                onComplete={(data: { location: string }) => {
+                  updateJourneyData('preferences', {
+                    ...journeyData.preferences,
+                    location: data.location,
+                  });
+                  nextStage();
+                }}
+              />
+            </motion.div>
+          )}
+
+          {currentStage === 3 && (
+            <motion.div
               key="budget"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -235,6 +273,7 @@ export default function ToyotaDreamTrip() {
               className="relative z-20"
             >
               <BudgetStage
+                onBack={prevStage}
                 onComplete={(data: { budget: number; creditScore: number }) => {
                   updateJourneyData('preferences', {
                     ...journeyData.preferences,
@@ -247,10 +286,53 @@ export default function ToyotaDreamTrip() {
             </motion.div>
           )}
 
-          {currentStage === 3 && (
+          {currentStage === 4 && (
+            <motion.div
+              key="vehicleType"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="relative z-20"
+            >
+              <VehicleTypeStage
+                onBack={prevStage}
+                onComplete={(data: { vehicleType: string }) => {
+                  updateJourneyData('preferences', {
+                    ...journeyData.preferences,
+                    vehicleType: data.vehicleType,
+                  });
+                  nextStage();
+                }}
+              />
+            </motion.div>
+          )}
+
+          {currentStage === 5 && (
+            <motion.div
+              key="features"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="relative z-20"
+            >
+              <FeaturesStage
+                onBack={prevStage}
+                onComplete={(data: { priority: string }) => {
+                  updateJourneyData('preferences', {
+                    ...journeyData.preferences,
+                    priority: data.priority,
+                  });
+                  nextStage();
+                }}
+              />
+            </motion.div>
+          )}
+
+          {currentStage === 6 && (
             <ComparisonStage
               key="comparison"
               preferences={journeyData.preferences}
+              onBack={prevStage}
               onComplete={(modelId: string) => {
                 const model = getModelById(modelId);
                 updateJourneyData('selectedModel', model);
@@ -259,10 +341,11 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 4 && (
+          {currentStage === 7 && (
             <CustomizationStage
               key="customization"
               selectedModel={journeyData.selectedModel}
+              onBack={prevStage}
               onComplete={(data: Record<string, unknown>) => {
                 updateJourneyData('customization', data);
                 nextStage();
@@ -270,11 +353,12 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 5 && (
+          {currentStage === 8 && (
             <FinancingStage
               key="financing"
               selectedModel={journeyData.selectedModel}
               customization={journeyData.customization}
+              onBack={prevStage}
               onComplete={(data: Record<string, unknown>) => {
                 updateJourneyData('financing', data);
                 nextStage();
@@ -282,10 +366,11 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 6 && (
+          {currentStage === 9 && (
             <UpsellStage
               key="upsell"
               journeyData={journeyData}
+              onBack={prevStage}
               onComplete={(choice: string, recommendations?: unknown) => {
                 updateJourneyData('finalChoice', choice);
                 updateJourneyData('upsellData', recommendations);
@@ -294,7 +379,7 @@ export default function ToyotaDreamTrip() {
             />
           )}
 
-          {currentStage === 7 && <RevealStage key="reveal" journeyData={journeyData} />}
+          {currentStage === 10 && <RevealStage key="reveal" journeyData={journeyData} />}
         </AnimatePresence>
       </div>
     </div>

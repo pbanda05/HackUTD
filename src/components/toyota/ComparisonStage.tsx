@@ -1,9 +1,10 @@
-// src/components/toyota/ComparisonStage.tsx
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Zap, Users, Fuel, Star, Loader2, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Zap, Users, Fuel, Star, Loader2, Sparkles } from 'lucide-react';
 import Car3DViewer from './Car3DViewer';
-import Car360Viewer from './Car360Viewer';
+import { MODELS as MODEL_DATA } from '../../data/models';
+
+
 type Preferences = {
   lifestyle?: string;
   usage?: string;
@@ -15,6 +16,7 @@ type Preferences = {
 
 interface ComparisonStageProps {
   preferences: Preferences;
+  onBack?: () => void;
   onComplete: (modelId: string) => void;
   /**
    * Optional async recommender. Return one of:
@@ -31,54 +33,76 @@ type ModelSpec = {
 };
 
 type Model = {
-  id: 'camry' | 'rav4' | 'highlander' | 'tacoma';
-  name: 'Camry' | 'RAV4' | 'Highlander' | 'Tacoma';
+  id: string;
+  name: string;
   tagline: string;
   price: number;
   specs: ModelSpec;
   highlights: string[];
+  image: string;
+  fuel_type: string;
+  vehicle_type: 'sedan' | 'SUV' | 'truck' | 'coupe' | 'hatchback' | 'sedan/crossover';
 };
 
-const MODELS: Model[] = [
-  {
-    id: 'camry',
-    name: 'Camry',
-    tagline: 'The Icon Redefined',
-    price: 28000,
-    specs: { horsepower: 203, mpg: 32, seating: 5, rating: 4.8 },
-    highlights: ['Advanced Safety', 'Hybrid Available', 'Sport Mode'],
-  },
-  {
-    id: 'rav4',
-    name: 'RAV4',
-    tagline: 'Adventure Awaits',
-    price: 32000,
-    specs: { horsepower: 203, mpg: 30, seating: 5, rating: 4.7 },
-    highlights: ['AWD Available', 'Spacious Interior', 'Off-Road Ready'],
-  },
-  {
-    id: 'highlander',
-    name: 'Highlander',
-    tagline: 'Family Luxury',
-    price: 38000,
-    specs: { horsepower: 295, mpg: 24, seating: 8, rating: 4.9 },
-    highlights: ['3-Row Seating', 'Premium Interior', 'Towing Capacity'],
-  },
-  {
-    id: 'tacoma',
-    name: 'Tacoma',
-    tagline: 'Built for Legends',
-    price: 34000,
-    specs: { horsepower: 278, mpg: 20, seating: 5, rating: 4.6 },
-    highlights: ['Off-Road Package', 'Rugged Design', 'Best Resale Value'],
-  },
-];
+const MODELS: Model[] = MODEL_DATA.map(model => {
+  // Helper function to determine vehicle type from model name/id
+  const getVehicleType = (id: string, name: string): Model['vehicle_type'] => {
+    const idLower = id.toLowerCase();
+    const nameLower = name.toLowerCase();
+    if (idLower.includes('truck') || idLower.includes('tundra') || idLower.includes('tacoma')) return 'truck';
+    if (idLower.includes('suv') || idLower.includes('rav4') || idLower.includes('highlander') || idLower.includes('sequoia') || idLower.includes('4runner') || idLower.includes('bz4x')) return 'SUV';
+    if (idLower.includes('coupe') || idLower.includes('supra') || idLower.includes('gr86')) return 'coupe';
+    if (idLower.includes('hatchback') || idLower.includes('corolla') || idLower.includes('prius')) return 'hatchback';
+    if (idLower.includes('crown')) return 'sedan/crossover';
+    return 'sedan';
+  };
+
+  // Helper function to determine fuel type from model name/id
+  const getFuelType = (id: string, name: string): string => {
+    const idLower = id.toLowerCase();
+    const nameLower = name.toLowerCase();
+    if (idLower.includes('bz4x') || idLower.includes('electric')) return 'electric';
+    if (idLower.includes('hybrid') || idLower.includes('prius') || idLower.includes('crown') || idLower.includes('grandhighlander')) return 'hybrid';
+    if (idLower.includes('iforce') || idLower.includes('tundra') || idLower.includes('sequoia')) return 'gas / hybrid';
+    return 'gas';
+  };
+
+  // Helper function to get image path
+  const getImagePath = (id: string): string => {
+    // Default image path - you can update this based on your actual image structure
+    return `/pics/${id}.webp`; // or .png, .jpg based on your actual files
+  };
+
+  return {
+    id: model.id,
+    name: model.name,
+    tagline: model.tagline,
+    price: model.price,
+    specs: model.specs,
+    highlights: model.highlights,
+    image: (model as any).image || getImagePath(model.id),
+    fuel_type: (model as any).fuel_type || getFuelType(model.id, model.name),
+    vehicle_type: ((model as any).vehicle_type as Model['vehicle_type']) || getVehicleType(model.id, model.name),
+  };
+});
 
 const NAME_TO_ID: Record<Model['name'], Model['id']> = {
-  Camry: 'camry',
-  RAV4: 'rav4',
-  Highlander: 'highlander',
-  Tacoma: 'tacoma',
+  'Supra': 'supra',
+  'Tundra TRD Pro i‑FORCE MAX': 'tundra_trd_pro_iforce_max',
+  'Sequoia': 'sequoia',
+  'GR Corolla': 'gr_corolla',
+  'Tacoma TRD Pro i‑FORCE MAX': 'tacoma_trd_pro_iforce_max',
+  'Tundra': 'tundra',
+  'GR 86': 'gr86',
+  'Grand Highlander': 'grandHighlander',
+  '4Runner': '4runner',
+  'Crown': 'crown',
+  'Highlander': 'highlander',
+  'bZ4X': 'bz4x',
+  'Camry': 'camry',
+  'RAV4': 'rav4',
+  'Prius': 'prius',
+  'Corolla': 'corolla'
 };
 
 const sanitizeToModelId = (value: string | null | undefined): Model['id'] | null => {
@@ -100,14 +124,14 @@ const fallbackRecommend = (prefs: Preferences): Model['name'] => {
       ? prefs.budget
       : Number(String(prefs.budget ?? '').replace(/[^0-9.]/g, ''));
 
-  if (usage.includes('off') || lifestyle.includes('adventure')) return 'RAV4';
-  if (usage.includes('family') || lifestyle.includes('family')) return 'Highlander';
-  if (!Number.isNaN(budgetNum) && budgetNum < 30000) return 'Camry';
-  if (usage.includes('haul') || usage.includes('work') || usage.includes('truck')) return 'Tacoma';
+  if (usage.includes('off') || lifestyle.includes('adventure')) return '4Runner';
+  if (usage.includes('family') || lifestyle.includes('family')) return 'Grand Highlander';
+  if (!Number.isNaN(budgetNum) && budgetNum < 30000) return 'Corolla';
+  if (usage.includes('haul') || usage.includes('work') || usage.includes('truck')) return 'Tundra';
   return 'Camry';
 };
 
-const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComplete, recommendModel }) => {
+const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onBack, onComplete, recommendModel }) => {
   const [selectedModel, setSelectedModel] = useState<Model['id'] | null>(null);
   const [hoveredModel, setHoveredModel] = useState<Model['id'] | null>(null);
   const [aiRecommendation, setAiRecommendation] = useState<Model['name'] | null>(null);
@@ -125,18 +149,14 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
         
         if (recommendModel) {
           const raw = await recommendModel(preferences);
-          name = (['Camry', 'RAV4', 'Highlander', 'Tacoma'] as const).includes(
-            raw as Model['name']
-          )
+          name = Object.keys(NAME_TO_ID).includes(raw)
             ? (raw as Model['name'])
             : 'Camry';
         } else {
           try {
             const { api } = await import('@/services/api');
             const result = await api.recommendModel(preferences);
-            name = (['Camry', 'RAV4', 'Highlander', 'Tacoma'] as const).includes(
-              result.model as Model['name']
-            )
+            name = Object.keys(NAME_TO_ID).includes(result.model)
               ? (result.model as Model['name'])
               : fallbackRecommend(preferences);
             analysis = result.analysis || '';
@@ -179,16 +199,97 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
   const recommendedModel = recommendedModelId ? MODELS.find(m => m.id === recommendedModelId) : null;
   
   const getMatchScore = (modelId: string) => {
-    if (!modelId || !matchScores) return 3;
-    return matchScores[modelId] || 3;
+    if (!modelId || !matchScores) return 0;
+    
+    // Get the base score from the AI recommendations
+    const baseScore = matchScores[modelId] || 0;
+    
+    // Find the model details
+    const model = MODELS.find(m => m.id === modelId);
+    if (!model) return baseScore;
+
+    // Apply additional scoring based on preferences
+    let additionalScore = 0;
+    
+    // Budget preference
+    const budgetNum = typeof preferences.budget === 'number' 
+      ? preferences.budget 
+      : Number(String(preferences.budget ?? '').replace(/[^0-9.]/g, ''));
+    
+    if (!Number.isNaN(budgetNum)) {
+      // Give higher score if price is within budget
+      if (model.price <= budgetNum) additionalScore += 1;
+      // Small penalty if significantly over budget (>20%)
+      if (model.price > budgetNum * 1.2) additionalScore -= 0.5;
+    }
+
+    // Lifestyle preferences
+    const lifestyle = String(preferences.lifestyle ?? '').toLowerCase();
+    const usage = String(preferences.usage ?? '').toLowerCase();
+    
+    // Family preference matching
+    if ((lifestyle.includes('family') || usage.includes('family')) && 
+        (model.specs.seating >= 5 || model.highlights.some(h => h.toLowerCase().includes('family')))) {
+      additionalScore += 0.5;
+    }
+
+    // Adventure/Off-road preference matching
+    if ((lifestyle.includes('adventure') || usage.includes('off-road')) && 
+        (model.vehicle_type === 'SUV' || model.vehicle_type === 'truck' ||
+         model.highlights.some(h => h.toLowerCase().includes('off-road')))) {
+      additionalScore += 0.5;
+    }
+
+    // Performance preference matching
+    if ((lifestyle.includes('performance') || usage.includes('sport')) && 
+        (model.specs.horsepower > 300 || model.highlights.some(h => h.toLowerCase().includes('performance')))) {
+      additionalScore += 0.5;
+    }
+
+    // Eco-friendly preference matching
+    if ((lifestyle.includes('eco') || usage.includes('efficient')) && 
+        (model.fuel_type.includes('hybrid') || model.fuel_type === 'electric')) {
+      additionalScore += 0.5;
+    }
+
+    // Location-based preferences (if available)
+    const location = String(preferences.location ?? '').toLowerCase();
+    if (location) {
+      // Urban preference
+      if (location.includes('city') && (model.vehicle_type === 'sedan' || model.vehicle_type === 'hatchback')) {
+        additionalScore += 0.3;
+      }
+      // Rural/Suburban preference
+      if ((location.includes('rural') || location.includes('suburban')) && 
+          (model.vehicle_type === 'SUV' || model.vehicle_type === 'truck')) {
+        additionalScore += 0.3;
+      }
+    }
+
+    // Combine base score with additional scoring
+    // Cap the final score at 5
+    return Math.min(5, baseScore + additionalScore);
   };
-  
-  const corollaCrossXle = (f: number) =>
-    'https://tmna.aemassets.toyota.com/is/image/toyota/toyota/jellies/max/2026/corollacross/xle/6305/089/36/10.png?fmt=webp-alpha&wid=930&hei=328&qlt=90'
   
 
   return (
     <div className="text-white py-20 px-6 max-w-7xl mx-auto relative min-h-[calc(100vh-200px)] flex flex-col justify-center items-center w-full">
+      {/* Back Button */}
+      {onBack && (
+        <motion.button
+          type="button"
+          onClick={onBack}
+          className="fixed top-4 left-4 flex items-center gap-2 text-gray-300 hover:text-white transition-colors cursor-pointer z-30 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-700 hover:border-gray-600"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+          <span className="text-sm font-medium">Back</span>
+        </motion.button>
+      )}
+      
       <motion.div
         className="text-center mb-12"
         initial={{ opacity: 0, y: 20 }}
@@ -223,7 +324,7 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                 transition={{ delay: 0.2 }}
                 /* NEW: make the whole card selectable */
                 onClick={() => handleSelectModel(recommendedModel.id)}
-                className={`mb-12 w-full bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl border-2 overflow-hidden shadow-2xl transition-all cursor-pointer ${
+                className={`mb-12 w-full bg-linear-to-br from-gray-900 to-gray-800 rounded-3xl border-2 overflow-hidden shadow-2xl transition-all cursor-pointer ${
                   isSelected
                     ? 'border-green-500 shadow-green-500/30 ring-4 ring-green-500/20'
                     : 'border-red-500 shadow-red-500/20'
@@ -231,9 +332,9 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
               >
                 <div className="flex flex-row h-96">
                   {/* Left 1/4 - 3D Car Model */}
-                  <div className="w-1/4 bg-gradient-to-br from-gray-800 to-black relative overflow-hidden">
+                  <div className="w-1/4 bg-linear-to-br from-gray-800 to-black relative overflow-hidden">
                     {/* AI Recommended Badge */}
-                    <div className="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 z-10 shadow-lg">
+                    <div className="absolute top-4 left-4 bg-linear-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 z-10 shadow-lg">
                       <Sparkles className="w-4 h-4" />
                       AI Recommended
                     </div>
@@ -248,11 +349,11 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                     {/* Car Image - Centered with top padding to avoid badges */}
                     <div className="absolute inset-0 flex items-center justify-center pt-16 pb-4 px-4 pointer-events-none">
                       {/* pointer-events-none ensures the canvas never blocks clicks */}
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center p-4">
                         <img 
-                          src="https://tmna.aemassets.toyota.com/is/image/toyota/toyota/jellies/max/2026/corollacross/xle/6305/089/36/10.png?fmt=webp-alpha&wid=930&hei=328&qlt=90" 
-                          alt="Corolla Cross XLE" 
-                          className="max-w-full max-h-full w-auto h-auto rounded-2xl shadow-lg object-contain"
+                          src={recommendedModel.image}
+                          alt={recommendedModel.name}
+                          className="max-w-[80%] max-h-[80%] w-auto h-auto rounded-2xl shadow-lg object-contain"
                         />
                       </div>
                     </div>
@@ -389,7 +490,14 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
 
           {/* Other Car Comparison Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {MODELS.filter(model => !recommendedModelId || model.id !== recommendedModelId).map((model) => {
+            {MODELS
+              .filter(model => !recommendedModelId || model.id !== recommendedModelId)
+              .sort((a, b) => {
+                const scoreA = getMatchScore(a.id);
+                const scoreB = getMatchScore(b.id);
+                return scoreB - scoreA; // Sort by highest match score
+              })
+              .map((model) => {
               const isSelected = selectedModel === model.id;
               const isHovered = hoveredModel === model.id;
               const matchScore = getMatchScore(model.id);
@@ -399,8 +507,8 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                   key={model.id}
                   className={`relative rounded-2xl border overflow-hidden transition-all ${
                     isSelected
-                      ? 'border-red-500 bg-gradient-to-b from-gray-900 to-red-600/20 ring-4 ring-red-500/30'
-                      : 'border-gray-700 bg-gradient-to-b from-gray-900 to-gray-900/50'
+                      ? 'border-red-500 bg-linear-to-b from-gray-900 to-red-600/20 ring-4 ring-red-500/30'
+                      : 'border-gray-700 bg-linear-to-b from-gray-900 to-gray-900/50'
                   } cursor-pointer ${
                     isHovered ? 'scale-105' : 'hover:scale-105'
                   }`}
@@ -420,13 +528,14 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onComple
                   </div>
 
                   {/* Car Image Section */}
-                  <div className="h-48 bg-gradient-to-br from-gray-800 to-black relative overflow-hidden">
-                    <Car3DViewer 
-                      key={`${model.id}-${isSelected}`}
-                      modelId={model.id} 
-                      isActive={isSelected}
-                      color={{ hex: '#C1272D' }}
-                    />
+                  <div className="h-48 bg-linear-to-br from-gray-800 to-black relative overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center p-4">
+                      <img 
+                        src={model.image}
+                        alt={model.name}
+                        className="max-w-[70%] max-h-[70%] w-auto h-auto rounded-2xl shadow-lg object-contain"
+                      />
+                    </div>
                   </div>
 
                   {/* Content Section */}

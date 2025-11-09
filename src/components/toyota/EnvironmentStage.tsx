@@ -1,63 +1,61 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Mountain, Zap, Briefcase, ChevronLeft } from 'lucide-react';
+import { MapPin, Building2, TreePine, Route, ChevronLeft } from 'lucide-react';
 
-type PreferenceValue = string | number | boolean | null;
-type Preferences = Record<string, PreferenceValue>;
-interface PreferencesStageProps {
+type EnvironmentStageProps = {
   onBack?: () => void;
-  onComplete: (data: Preferences) => void;
-}
+  onComplete: (data: { location: string }) => void;
+};
 
-const LIFESTYLE_OPTIONS = [
+const ENVIRONMENT_OPTIONS = [
   {
-    id: 'family',
-    label: 'Family',
-    description: 'Spacious, safe, practical',
-    icon: Users,
+    id: 'urban',
+    label: 'Urban',
+    description: 'City streets, tight parking, daily commute',
+    icon: Building2,
     color: 'blue',
     bgColor: 'from-blue-600 to-blue-700',
     borderColor: 'border-blue-500'
   },
   {
-    id: 'adventure',
-    label: 'Adventure',
-    description: 'Rugged, powerful, capable',
-    icon: Mountain,
+    id: 'suburban',
+    label: 'Suburban',
+    description: 'Mixed driving, highways, neighborhoods',
+    icon: Route,
     color: 'green',
     bgColor: 'from-green-600 to-green-700',
     borderColor: 'border-green-500'
   },
   {
-    id: 'performance',
-    label: 'Performance',
-    description: 'Fast, sleek, thrilling',
-    icon: Zap,
-    color: 'red',
-    bgColor: 'from-red-600 to-red-700',
-    borderColor: 'border-red-500'
+    id: 'rural',
+    label: 'Rural',
+    description: 'Open roads, off-road, wide spaces',
+    icon: TreePine,
+    color: 'orange',
+    bgColor: 'from-orange-600 to-orange-700',
+    borderColor: 'border-orange-500'
   },
   {
-    id: 'business',
-    label: 'Business',
-    description: 'Elegant, efficient, refined',
-    icon: Briefcase,
+    id: 'mixed',
+    label: 'Mixed',
+    description: 'A bit of everything, versatile needs',
+    icon: MapPin,
     color: 'purple',
     bgColor: 'from-purple-600 to-purple-700',
     borderColor: 'border-purple-500'
   }
 ];
 
-const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete }) => {
-  const [selectedLifestyle, setSelectedLifestyle] = useState<string | null>(null);
+const EnvironmentStage: React.FC<EnvironmentStageProps> = ({ onBack, onComplete }) => {
+  const [selectedEnvironment, setSelectedEnvironment] = useState<string | null>(null);
 
-  const handleSelect = (lifestyleId: string) => {
-    setSelectedLifestyle(lifestyleId);
+  const handleSelect = (environmentId: string) => {
+    setSelectedEnvironment(environmentId);
   };
 
   const handleSubmit = () => {
-    if (selectedLifestyle) {
-      onComplete({ lifestyle: selectedLifestyle });
+    if (selectedEnvironment) {
+      onComplete({ location: selectedEnvironment });
     }
   };
 
@@ -90,18 +88,18 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete 
         animate={{ opacity: 1, y: 0 }}
       >
         <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">
-          What Drives <span className="text-red-600">You?</span>
+            Where would you drive your <span className="text-red-600">Car?</span>
         </h2>
         <p className="text-xl text-gray-300">
-          Choose the lifestyle that matches your journey
+          Choose the environment that matches your driving style
         </p>
       </motion.div>
 
-      {/* 2x2 Grid of Lifestyle Options */}
+      {/* 2x2 Grid of Environment Options */}
       <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto relative z-20">
-        {LIFESTYLE_OPTIONS.map((option, index) => {
+        {ENVIRONMENT_OPTIONS.map((option, index) => {
           const Icon = option.icon;
-          const isSelected = selectedLifestyle === option.id;
+          const isSelected = selectedEnvironment === option.id;
           
           return (
             <motion.button
@@ -134,7 +132,7 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete 
       </div>
 
       {/* Continue Button */}
-      {selectedLifestyle && (
+      {selectedEnvironment && (
         <motion.div
           className="text-center mt-12"
           initial={{ opacity: 0, y: 20 }}
@@ -153,4 +151,5 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete 
   );
 };
 
-export default PreferencesStage;
+export default EnvironmentStage;
+

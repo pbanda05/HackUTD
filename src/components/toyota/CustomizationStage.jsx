@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Car } from 'lucide-react';
+import { Car, ChevronLeft } from 'lucide-react';
 import Car3DViewer from './Car3DViewer';
-import { Slider } from '@/components/ui/slider';
 
 const COLORS = [
   { id: 'red', name: 'Supersonic Red', hex: '#C1272D' },
@@ -34,20 +33,31 @@ const PACKAGES = [
   }
 ];
 
-export default function CustomizationStage({ selectedModel, onComplete }) {
+export default function CustomizationStage({ selectedModel, onBack, onComplete }) {
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [wheelSize, setWheelSize] = useState(18);
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [selectedPackages, setSelectedPackages] = useState([]);
 
   const basePrice = selectedModel?.price || 0;
-  const packagePrice = selectedPackage?.price || 0;
+  const packagePrice = selectedPackages.reduce((sum, pkg) => sum + pkg.price, 0);
   const totalPrice = basePrice + packagePrice;
+
+  const handlePackageToggle = (pkg) => {
+    setSelectedPackages(prev => {
+      const isSelected = prev.some(selected => selected.id === pkg.id);
+      if (isSelected) {
+        return prev.filter(selected => selected.id !== pkg.id);
+      } else {
+        return [...prev, pkg];
+      }
+    });
+  };
 
   const handleContinue = () => {
     onComplete({
       color: selectedColor,
       wheelSize,
-      package: selectedPackage,
+      packages: selectedPackages,
       totalPrice
     });
   };
@@ -59,6 +69,22 @@ export default function CustomizationStage({ selectedModel, onComplete }) {
       exit={{ opacity: 0, y: -50 }}
       className="max-w-7xl mx-auto relative min-h-[calc(100vh-200px)] flex flex-col justify-center items-center w-full"
     >
+      {/* Back Button */}
+      {onBack && (
+        <motion.button
+          type="button"
+          onClick={onBack}
+          className="fixed top-4 left-4 flex items-center gap-2 text-gray-300 hover:text-white transition-colors cursor-pointer z-30 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-700 hover:border-gray-600"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+          <span className="text-sm font-medium">Back</span>
+        </motion.button>
+      )}
+      
       <motion.div
         className="text-center mb-12"
         initial={{ opacity: 0, y: 20 }}
@@ -96,12 +122,12 @@ export default function CustomizationStage({ selectedModel, onComplete }) {
               <span className="text-gray-300">Base Price</span>
               <span className="text-white font-semibold">${basePrice.toLocaleString()}</span>
             </div>
-            {selectedPackage && (
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-gray-300">{selectedPackage.name}</span>
-                <span className="text-red-500 font-semibold">+${selectedPackage.price.toLocaleString()}</span>
+            {selectedPackages.map((pkg) => (
+              <div key={pkg.id} className="flex justify-between items-center mb-4">
+                <span className="text-gray-300">{pkg.name}</span>
+                <span className="text-red-500 font-semibold">+${pkg.price.toLocaleString()}</span>
               </div>
-            )}
+            ))}
             <div className="flex justify-between items-center pt-4 border-t border-gray-700">
               <span className="text-white text-lg font-bold">Total</span>
               <span className="text-white text-2xl font-black">${totalPrice.toLocaleString()}</span>
@@ -153,22 +179,20 @@ export default function CustomizationStage({ selectedModel, onComplete }) {
           {/* Wheel Size */}
           <div>
             <h3 className="text-xl font-bold text-white mb-4">
-              Wheel Size: {wheelSize}"
+              Wheel Size
             </h3>
             <div className="relative">
-              <Slider
+              <select
                 value={wheelSize}
-                onChange={(val) => setWheelSize(val)}
-                min={17}
-                max={21}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between mt-2 text-sm text-gray-400">
-                <span>17"</span>
-                <span>18"</span>
-                <span>21"</span>
-              </div>
+                onChange={(e) => setWheelSize(Number(e.target.value))}
+                className="w-full px-4 py-3 bg-gray-900/50 border-2 border-gray-700 rounded-xl text-white text-lg font-semibold focus:border-red-500 focus:ring-4 focus:ring-red-500/30 outline-none transition-all cursor-pointer hover:border-gray-600"
+              >
+                <option value={17} className="bg-gray-900 text-white">17"</option>
+                <option value={18} className="bg-gray-900 text-white">18"</option>
+                <option value={19} className="bg-gray-900 text-white">19"</option>
+                <option value={20} className="bg-gray-900 text-white">20"</option>
+                <option value={21} className="bg-gray-900 text-white">21"</option>
+              </select>
             </div>
           </div>
 
@@ -177,12 +201,12 @@ export default function CustomizationStage({ selectedModel, onComplete }) {
             <h3 className="text-xl font-bold text-white mb-4">Upgrade Packages</h3>
             <div className="space-y-3">
               {PACKAGES.map((pkg) => {
-                const isSelected = selectedPackage?.id === pkg.id;
+                const isSelected = selectedPackages.some(selected => selected.id === pkg.id);
                 return (
                   <button
                     key={pkg.id}
                     type="button"
-                    onClick={() => setSelectedPackage(isSelected ? null : pkg)}
+                    onClick={() => handlePackageToggle(pkg)}
                     className={`w-full p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
                       isSelected
                         ? 'border-red-500 bg-red-600/20'

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Slider } from '@/components/ui/slider';
-import { DollarSign, Percent, Calendar } from 'lucide-react';
+import { DollarSign, Percent, Calendar, ChevronLeft } from 'lucide-react';
 
-export default function FinancingStage({ selectedModel, customization, onComplete }) {
+export default function FinancingStage({ selectedModel, customization, onBack, onComplete }) {
   const totalPrice = customization?.totalPrice || selectedModel?.price || 0;
   
   const [financeType, setFinanceType] = useState('finance');
@@ -58,6 +58,22 @@ export default function FinancingStage({ selectedModel, customization, onComplet
       exit={{ opacity: 0, y: -50 }}
       className="max-w-7xl mx-auto relative min-h-[calc(100vh-200px)] flex flex-col justify-center items-center w-full"
     >
+      {/* Back Button */}
+      {onBack && (
+        <motion.button
+          type="button"
+          onClick={onBack}
+          className="fixed top-4 left-4 flex items-center gap-2 text-gray-300 hover:text-white transition-colors cursor-pointer z-30 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-700 hover:border-gray-600"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+          <span className="text-sm font-medium">Back</span>
+        </motion.button>
+      )}
+      
       <motion.div
         className="text-center mb-12"
         initial={{ opacity: 0, y: 20 }}

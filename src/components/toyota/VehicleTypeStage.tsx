@@ -1,63 +1,61 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Mountain, Zap, Briefcase, ChevronLeft } from 'lucide-react';
+import { Car, Truck, Users, Zap, ChevronLeft } from 'lucide-react';
 
-type PreferenceValue = string | number | boolean | null;
-type Preferences = Record<string, PreferenceValue>;
-interface PreferencesStageProps {
+type VehicleTypeStageProps = {
   onBack?: () => void;
-  onComplete: (data: Preferences) => void;
-}
+  onComplete: (data: { vehicleType: string }) => void;
+};
 
-const LIFESTYLE_OPTIONS = [
+const VEHICLE_TYPE_OPTIONS = [
   {
-    id: 'family',
-    label: 'Family',
-    description: 'Spacious, safe, practical',
-    icon: Users,
+    id: 'sedan',
+    label: 'Sedan',
+    description: 'Comfortable, efficient, perfect for daily driving',
+    icon: Car,
     color: 'blue',
     bgColor: 'from-blue-600 to-blue-700',
     borderColor: 'border-blue-500'
   },
   {
-    id: 'adventure',
-    label: 'Adventure',
-    description: 'Rugged, powerful, capable',
-    icon: Mountain,
+    id: 'suv',
+    label: 'SUV',
+    description: 'Spacious, versatile, great for families and adventures',
+    icon: Users,
     color: 'green',
     bgColor: 'from-green-600 to-green-700',
     borderColor: 'border-green-500'
   },
   {
-    id: 'performance',
-    label: 'Performance',
-    description: 'Fast, sleek, thrilling',
+    id: 'truck',
+    label: 'Truck',
+    description: 'Powerful, capable, built for work and off-road',
+    icon: Truck,
+    color: 'orange',
+    bgColor: 'from-orange-600 to-orange-700',
+    borderColor: 'border-orange-500'
+  },
+  {
+    id: 'coupe',
+    label: 'Coupe',
+    description: 'Sporty, sleek, designed for performance and style',
     icon: Zap,
     color: 'red',
     bgColor: 'from-red-600 to-red-700',
     borderColor: 'border-red-500'
-  },
-  {
-    id: 'business',
-    label: 'Business',
-    description: 'Elegant, efficient, refined',
-    icon: Briefcase,
-    color: 'purple',
-    bgColor: 'from-purple-600 to-purple-700',
-    borderColor: 'border-purple-500'
   }
 ];
 
-const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete }) => {
-  const [selectedLifestyle, setSelectedLifestyle] = useState<string | null>(null);
+const VehicleTypeStage: React.FC<VehicleTypeStageProps> = ({ onBack, onComplete }) => {
+  const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(null);
 
-  const handleSelect = (lifestyleId: string) => {
-    setSelectedLifestyle(lifestyleId);
+  const handleSelect = (vehicleTypeId: string) => {
+    setSelectedVehicleType(vehicleTypeId);
   };
 
   const handleSubmit = () => {
-    if (selectedLifestyle) {
-      onComplete({ lifestyle: selectedLifestyle });
+    if (selectedVehicleType) {
+      onComplete({ vehicleType: selectedVehicleType });
     }
   };
 
@@ -90,18 +88,18 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete 
         animate={{ opacity: 1, y: 0 }}
       >
         <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">
-          What Drives <span className="text-red-600">You?</span>
+          What Type of <span className="text-red-600">Vehicle?</span>
         </h2>
         <p className="text-xl text-gray-300">
-          Choose the lifestyle that matches your journey
+          Choose the vehicle type that fits your needs
         </p>
       </motion.div>
 
-      {/* 2x2 Grid of Lifestyle Options */}
+      {/* 2x2 Grid of Vehicle Type Options */}
       <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto relative z-20">
-        {LIFESTYLE_OPTIONS.map((option, index) => {
+        {VEHICLE_TYPE_OPTIONS.map((option, index) => {
           const Icon = option.icon;
-          const isSelected = selectedLifestyle === option.id;
+          const isSelected = selectedVehicleType === option.id;
           
           return (
             <motion.button
@@ -134,7 +132,7 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete 
       </div>
 
       {/* Continue Button */}
-      {selectedLifestyle && (
+      {selectedVehicleType && (
         <motion.div
           className="text-center mt-12"
           initial={{ opacity: 0, y: 20 }}
@@ -153,4 +151,5 @@ const PreferencesStage: React.FC<PreferencesStageProps> = ({ onBack, onComplete 
   );
 };
 
-export default PreferencesStage;
+export default VehicleTypeStage;
+
