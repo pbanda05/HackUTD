@@ -423,57 +423,6 @@ const ComparisonStage: React.FC<ComparisonStageProps> = ({ preferences, onBack, 
                       )}
                     </div>
                     
-                    {/* Bottom Section - Specs and Features */}
-                    <div className="flex gap-8">
-                      {/* Specs */}
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">Specifications</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="flex items-center gap-3">
-                            <Fuel className="w-5 h-5 text-red-500" />
-                            <div>
-                              <p className="text-xs text-gray-400">MPG</p>
-                              <p className="text-lg font-bold text-white">{recommendedModel.specs.mpg}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Zap className="w-5 h-5 text-red-500" />
-                            <div>
-                              <p className="text-xs text-gray-400">Horsepower</p>
-                              <p className="text-lg font-bold text-white">{recommendedModel.specs.horsepower} HP</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Users className="w-5 h-5 text-red-500" />
-                            <div>
-                              <p className="text-xs text-gray-400">Seating</p>
-                              <p className="text-lg font-bold text-white">{recommendedModel.specs.seating}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Star className="w-5 h-5 text-yellow-400" />
-                            <div>
-                              <p className="text-xs text-gray-400">Safety</p>
-                              <p className="text-lg font-bold text-white">{recommendedModel.specs.rating}★</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Features */}
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">Key Features</h4>
-                        <div className="space-y-2">
-                          {recommendedModel.highlights.map((h) => (
-                            <div key={h} className="flex items-center gap-2 text-white">
-                              <span className="text-red-500 font-bold">✓</span>
-                              <span className="text-sm">{h}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    
                     {/* Select Button */}
                     <div className="mt-6">
                       <button

@@ -1,43 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Car, ChevronLeft } from 'lucide-react';
-
-// Mapping of car models to their Sketchfab embed URLs
-const SKETCHFAB_MODELS = {
-  camry: {
-    embedUrl: 'https://sketchfab.com/models/147a0afe465144b5a474dc2f8c0a42cc/embed',
-    modelUrl: 'https://sketchfab.com/3d-models/toyota-camry-hybrid-se-2021-147a0afe465144b5a474dc2f8c0a42cc?utm_medium=embed&utm_campaign=share-popup&utm_content=147a0afe465144b5a474dc2f8c0a42cc',
-    title: 'Toyota Camry Hybrid SE 2021',
-    author: 'SQUIR3D',
-    authorUrl: 'https://sketchfab.com/SQUIR3D?utm_medium=embed&utm_campaign=share-popup&utm_content=147a0afe465144b5a474dc2f8c0a42cc'
-  },
-  highlander: {
-    embedUrl: 'https://sketchfab.com/models/ff144d062f244a3ebfae71bc2a41564b/embed', // TODO: Replace with actual Highlander embed URL
-    modelUrl: 'https://sketchfab.com/3d-models/toyota-camry-hybrid-se-2021-147a0afe465144b5a474dc2f8c0a42cc?utm_medium=embed&utm_campaign=share-popup&utm_content=147a0afe465144b5a474dc2f8c0a42cc', // TODO: Replace with actual Highlander model URL
-    title: 'Toyota Highlander', // TODO: Update with actual title
-    author: 'SQUIR3D', // TODO: Update with actual author
-    authorUrl: 'https://sketchfab.com/SQUIR3D?utm_medium=embed&utm_campaign=share-popup&utm_content=147a0afe465144b5a474dc2f8c0a42cc' // TODO: Update with actual author URL
-  },
-  tacoma: {
-    embedUrl: 'https://sketchfab.com/models/573f79c0d10647caa44b4c7d80533eaa/embed', // TODO: Replace with actual Highlander embed URL
-    modelUrl: 'https://sketchfab.com/3d-models/toyota-camry-hybrid-se-2021-147a0afe465144b5a474dc2f8c0a42cc?utm_medium=embed&utm_campaign=share-popup&utm_content=147a0afe465144b5a474dc2f8c0a42cc', // TODO: Replace with actual Highlander model URL
-    title: 'Toyota Highlander', // TODO: Update with actual title
-    author: 'SQUIR3D', // TODO: Update with actual author
-    authorUrl: 'https://sketchfab.com/SQUIR3D?utm_medium=embed&utm_campaign=share-popup&utm_content=147a0afe465144b5a474dc2f8c0a42cc' // TODO: Update with actual author URL
-  },
-  rav4: {
-    embedUrl: 'https://sketchfab.com/models/ed155ad0cb7d447085a519eaff9aa2df/embed',
-    modelUrl: 'https://sketchfab.com/3d-models/toyota-rav4-ed155ad0cb7d447085a519eaff9aa2df?utm_medium=embed&utm_campaign=share-popup&utm_content=ed155ad0cb7d447085a519eaff9aa2df',
-    title: 'Toyota RAV4',
-    author: 'SQUIR3D',
-    authorUrl: 'https://sketchfab.com/SQUIR3D?utm_medium=embed&utm_campaign=share-popup&utm_content=ed155ad0cb7d447085a519eaff9aa2df'
-  }
-};
-
-// Default to Camry if model not found
-const getSketchfabModel = (modelId) => {
-  return SKETCHFAB_MODELS[modelId?.toLowerCase()] || SKETCHFAB_MODELS.camry;
-};
+import Car3DViewer from './Car3DViewer';
 
 const COLORS = [
   { id: 'red', name: 'Supersonic Red', hex: '#C1272D' },
@@ -77,9 +41,6 @@ export default function CustomizationStage({ selectedModel, onBack, onComplete }
   const basePrice = selectedModel?.price || 0;
   const packagePrice = selectedPackages.reduce((sum, pkg) => sum + pkg.price, 0);
   const totalPrice = basePrice + packagePrice;
-  
-  // Get the appropriate Sketchfab model for the selected car
-  const sketchfabModel = getSketchfabModel(selectedModel?.id);
 
   const handlePackageToggle = (pkg) => {
     setSelectedPackages(prev => {

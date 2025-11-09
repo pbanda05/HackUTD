@@ -1,7 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, ChevronLeft, TrendingUp, TrendingDown, Sparkles, Loader2 } from 'lucide-react';
-import Car3DViewer from './Car3DViewer';
+
+// Helper function to get car image path
+const getImagePath = (modelId, vehicleType) => {
+  const imageMap = {
+    'rav4': '/pics/rav4.webp',
+    'highlander': '/pics/highlander.webp',
+    'tacoma': '/pics/tacoma.webp',
+    'supra': '/pics/supra.webp',
+    'tundra_trd_pro_iforce_max': '/pics/tundra.webp',
+    'sequoia': '/pics/sequoia.png',
+    'gr_corolla': '/pics/grcorolla.webp',
+    'tacoma_trd_pro_iforce_max': '/pics/tacoma.webp',
+    'tundra': '/pics/tundra.webp',
+    'gr86': '/pics/gr86.webp',
+    'grandHighlander': '/pics/grandhighlander.webp',
+    'prius': '/pics/prius.webp',
+    'camry': '/pics/prius.webp', // Using Prius as fallback for Camry
+  };
+  
+  if (imageMap[modelId]) {
+    return imageMap[modelId];
+  }
+  
+  // Fallback based on vehicle type
+  if (vehicleType === 'sedan' || vehicleType === 'sedan/crossover') {
+    return '/pics/prius.webp';
+  } else if (vehicleType === 'SUV') {
+    return '/pics/rav4.webp';
+  } else if (vehicleType === 'truck') {
+    return '/pics/tacoma.webp';
+  } else if (vehicleType === 'coupe') {
+    return '/pics/supra.webp';
+  }
+  
+  return '/pics/rav4.webp'; // Default fallback
+};
 
 export default function UpsellStage({ journeyData, onBack, onComplete }) {
   const [loading, setLoading] = useState(true);
@@ -201,12 +236,14 @@ export default function UpsellStage({ journeyData, onBack, onComplete }) {
           <h3 className="text-2xl font-bold text-white mb-2">Current Selection</h3>
           <p className="text-gray-400 mb-4">{journeyData.selectedModel.name}</p>
           
-          <div className="h-40 bg-gradient-to-br from-gray-900/50 to-black/50 rounded-2xl mb-4">
-            <Car3DViewer 
-              modelId={journeyData.selectedModel.id} 
-              isActive={selectedOption === 'current'}
-              color={journeyData.customization.color}
-            />
+          <div className="h-40 bg-gradient-to-br from-gray-900/50 to-black/50 rounded-2xl mb-4 relative overflow-hidden">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img 
+                src={journeyData.selectedModel?.image || getImagePath(journeyData.selectedModel?.id, journeyData.selectedModel?.vehicle_type)}
+                alt={journeyData.selectedModel?.name || 'Selected Vehicle'}
+                className="w-full h-full object-contain rounded-2xl"
+              />
+            </div>
           </div>
 
           <div className="space-y-3 mb-6">
