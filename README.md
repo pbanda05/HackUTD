@@ -54,7 +54,3 @@ DreamRide was built with production-level frontend practices:
 
 ---
 
-## 📂 Project Structure (Example)
-
-> Update folder names to match your repo.
-
