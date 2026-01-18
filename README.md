@@ -1,134 +1,60 @@
-# Toyota Dream Trip - Full Stack Application
+# DreamRide 🚗✨ (Toyota 3D Car Buying Experience)
 
-A full-stack React frontend and Node.js/Express backend application for the Toyota Dream Trip experience.
+DreamRide is an immersive, multi-stage car-buying experience built for **Toyota** as part of **HackUTD**. The platform guides users through preference collection, model matching, and personalized recommendations — ending with a fully interactive **3D vehicle viewer** for exploring car variants in real time.
 
-## Project Structure
+This project focuses heavily on modern frontend engineering, smooth UX motion, and high-performance 3D interactivity.
 
-```
-HackUTD/
-├── backend/          # Express.js backend API
-│   ├── server.js    # Main server file
-│   └── package.json # Backend dependencies
-├── src/             # React frontend
-│   ├── components/  # React components
-│   ├── pages/       # Page components
-│   ├── services/    # API service layer
-│   └── ...
-└── package.json     # Frontend dependencies
-```
+---
 
-## Prerequisites
+## 🎯 What It Does
 
-- Node.js (v18 or higher)
-- npm or yarn
+DreamRide simulates a next-generation online car shopping workflow:
 
-## Setup
+1. **Collect preferences** (budget, style, needs, etc.)
+2. **Match users to Toyota models**
+3. **Generate personalized recommendations**
+4. **Explore final picks in a real-time 3D viewer**
 
-### 1. Install Dependencies
+---
 
-Install dependencies for both frontend and backend:
+## ✨ Key Features
 
-```bash
-npm run install:all
-```
+- Multi-stage car-buying flow (preference → matching → recommendations → 3D viewer)
+- Real-time **3D car visualization** using **Three.js**
+  - Rotate and inspect the vehicle
+  - Explore variants and configurations
+  - Interactive viewing experience
+- Polished animations and transitions using **Framer Motion**
+- Clean, responsive UI designed for modern web experiences
+- Modular component architecture for scalability and maintainability
 
-Or install them separately:
+---
 
-```bash
-# Frontend
-npm install
+## 🧱 Tech Stack
 
-# Backend
-cd backend && npm install
-```
+- **React 19**
+- **TypeScript**
+- **Vite**
+- **Three.js** (3D rendering + interactivity)
+- **Framer Motion** (UI animation / transitions)
+- **Lucide** (icons)
+- **ESLint** + strict TypeScript rules for code quality
+- GitHub + version control workflow
 
-### 2. Environment Variables
+---
 
-Create a `.env` file in the root directory (optional, defaults are provided):
+## ⚡ Performance & Engineering Focus
 
-```env
-VITE_API_URL=http://localhost:3001/api
-```
+DreamRide was built with production-level frontend practices:
 
-The backend uses port 3001 by default. You can change it by creating a `.env` file in the `backend/` directory:
+- Strict TypeScript configuration for safer code
+- ESLint enforcement for clean conventions
+- Modular and reusable components
+- Optimized loading and rendering for fast UX
 
-```env
-PORT=3001
-```
+---
 
-### 3. Run the Application
+## 📂 Project Structure (Example)
 
-#### Option 1: Run Both Frontend and Backend Together
+> Update folder names to match your repo.
 
-```bash
-npm run dev:all
-```
-
-This requires `concurrently` package (already added to devDependencies).
-
-#### Option 2: Run Separately
-
-**Terminal 1 - Backend:**
-```bash
-npm run dev:backend
-# or
-cd backend && npm run dev
-```
-
-**Terminal 2 - Frontend:**
-```bash
-npm run dev:frontend
-# or
-npm run dev
-```
-
-## Access the Application
-
-- **Frontend**: http://localhost:5173 (Vite default port)
-- **Backend API**: http://localhost:3001/api
-
-## API Endpoints
-
-### Health Check
-```
-GET /api/health
-```
-
-### Model Recommendation
-```
-POST /api/recommend-model
-Body: { "preferences": { ... } }
-```
-
-### Upsell/Downsell Recommendations
-```
-POST /api/recommendations
-Body: { "journeyData": { ... } }
-```
-
-## Development
-
-### Frontend
-- Built with React + Vite
-- Uses TypeScript for type safety
-- Framer Motion for animations
-- Three.js for 3D car visualization
-
-### Backend
-- Express.js REST API
-- CORS enabled for frontend communication
-- Ready for LLM integration (OpenAI, Anthropic, etc.)
-
-## Building for Production
-
-```bash
-# Build frontend
-npm run build:frontend
-
-# The built files will be in the `dist/` directory
-```
-
-## Notes
-
-- The backend currently uses simple heuristics for recommendations. You can integrate with LLM services (OpenAI, Anthropic, Base44, etc.) by updating the `backend/server.js` file.
-- The frontend automatically falls back to local heuristics if the API is unavailable.
